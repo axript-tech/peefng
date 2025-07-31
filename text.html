@@ -1,0 +1,592 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>LASU CBT Format Transformer (LASU CFT)</title>
+    <!-- Tailwind CSS CDN -->
+    <script src="https://cdn.tailwindcss.com"></script>
+    <!-- Google Fonts: Quicksand -->
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Quicksand:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <!-- Font Awesome -->
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.1.1/css/all.min.css">
+
+    <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Quicksand', 'sans-serif'],
+                    },
+                    colors: {
+                        'brand-dark': '#1a1a1a', /* From Monogram Empire header */
+                        'brand-gray': '#333333', /* From Monogram Empire header */
+                        'brand-light-gray': '#f2f2f2', /* From Monogram Empire header */
+                        'brand-gold': '#FFD700', /* From Monogram Empire header (preferred over #fcb900) */
+                        'brand-green': '#044F04', /* From PEEF footer */
+                        'brand-light-bg': '#f7fafc', /* From PEEF footer */
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        /* Custom styles based on provided PHP files */
+        body {
+            font-family: 'Quicksand', sans-serif;
+            background-color: #f7fafc; /* brand-light-bg */
+            display: flex;
+            flex-direction: column; /* Allow footer to stick to bottom */
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            margin: 0;
+            padding: 20px;
+            color: #1a1a1a; /* brand-dark */
+        }
+        .container {
+            background-color: #ffffff;
+            padding: 2.5rem; /* 40px */
+            border-radius: 1rem; /* 16px */
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+            max-width: 600px;
+            width: 100%;
+            text-align: center;
+            margin-bottom: 20px; /* Space before footer */
+        }
+        .section-title {
+            font-size: 1.75rem; /* text-2xl */
+            font-weight: 700; /* font-bold */
+            color: #1a1a1a; /* brand-dark */
+            margin-bottom: 1.5rem;
+            padding-bottom: 0.5rem;
+            position: relative;
+            display: inline-block; /* To center the ::after pseudo-element */
+        }
+        .section-title::after {
+            content: '';
+            display: block;
+            width: 60px;
+            height: 4px;
+            background: #FFD700; /* brand-gold */
+            margin: 10px auto 0;
+            border-radius: 2px;
+        }
+        .input-file-container {
+            position: relative;
+            margin-bottom: 1.5rem;
+        }
+        .input-file-trigger {
+            display: block;
+            background-color: #1a1a1a; /* brand-dark */
+            color: white;
+            padding: 0.75rem 1.5rem; /* 12px 24px */
+            border-radius: 0.5rem; /* 8px */
+            cursor: pointer;
+            transition: background-color 0.3s ease;
+            font-weight: 600;
+            text-align: center;
+        }
+        .input-file-trigger:hover {
+            background-color: #333333; /* brand-gray */
+        }
+        .input-file {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            opacity: 0;
+            cursor: pointer;
+        }
+        .file-name {
+            margin-top: 0.75rem;
+            font-size: 0.875rem; /* text-sm */
+            color: #4b5563; /* Gray 600 */
+        }
+        .btn {
+            display: inline-block;
+            font-weight: 700;
+            color: #1a1a1a; /* brand-dark */
+            background-color: #FFD700; /* brand-gold */
+            padding: 0.75rem 2rem;
+            border-radius: 50px; /* More rounded like PEEF buttons */
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+            width: 100%;
+            margin-top: 1.5rem;
+        }
+        .btn:hover {
+            transform: translateY(-2px) scale(1.02); /* Slight lift and scale */
+            box-shadow: 0 6px 20px rgba(255, 215, 0, 0.3); /* Gold shadow */
+        }
+        .btn:disabled {
+            background-color: #9ca3af; /* Gray 400 */
+            cursor: not-allowed;
+            transform: none;
+            box-shadow: none;
+        }
+        .btn-secondary-style { /* For the green button, using a similar style as PEEF's secondary */
+            background-color: #044F04; /* brand-green */
+            color: white;
+            border: 2px solid #044F04; /* brand-green */
+        }
+        .btn-secondary-style:hover {
+            background-color: #033a03; /* Darker green on hover */
+            border-color: #033a03;
+            color: white;
+        }
+
+        .message {
+            margin-top: 1.5rem;
+            padding: 0.75rem;
+            border-radius: 0.5rem;
+            font-size: 0.875rem;
+            display: none; /* Hidden by default */
+        }
+        .message.success {
+            background-color: #d1fae5; /* Green 100 */
+            color: #065f46; /* Green 800 */
+        }
+        .message.error {
+            background-color: #fee2e2; /* Red 100 */
+            color: #991b1b; /* Red 800 */
+        }
+        .message.info {
+            background-color: #e0f2fe; /* Blue 100 */
+            color: #1e40af; /* Blue 800 */
+        }
+        .separator {
+            border-top: 1px dashed #d1d5db; /* Gray 300 */
+            margin: 2.5rem 0; /* 40px vertical margin */
+        }
+
+        /* Footer styles */
+        .app-footer {
+            background-color: #1a1a1a; /* brand-dark */
+            color: #a0aec0; /* gray-400 */
+            padding: 1.5rem 0;
+            width: 100%;
+            text-align: center;
+            border-top-left-radius: 1rem;
+            border-top-right-radius: 1rem;
+            margin-top: auto; /* Push footer to bottom */
+        }
+        .app-footer .developer-info,
+        .app-footer .visitor-info {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            gap: 0.5rem;
+            margin-bottom: 0.5rem;
+        }
+        .app-footer a {
+            color: #FFD700; /* brand-gold */
+            text-decoration: none;
+            transition: color 0.3s ease;
+        }
+        .app-footer a:hover {
+            text-decoration: underline;
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1 class="text-3xl font-extrabold text-gray-900 mb-6">LASU CBT Format Transformer (LASU CFT)</h1>
+        <p class="text-gray-600 mb-8">Convert between Excel files (for questions) and formatted text files (for Q&A sets).</p>
+
+        <!-- Excel to Text Section -->
+        <h2 class="section-title">Excel to Text Conversion</h2>
+        <p class="text-gray-600 mb-6">Upload an Excel file with 'QUESTION', 'CORRECT ANSWER', 'WRONG ANSWER 1', 'WRONG ANSWER 2', 'WRONG ANSWER 3' columns.</p>
+
+        <div class="input-file-container">
+            <input type="file" id="excelFileInput" accept=".xlsx, .xls" class="input-file">
+            <label for="excelFileInput" class="input-file-trigger">
+                <span id="excelFileUploadText">Select Excel File</span>
+            </label>
+            <p class="file-name" id="excelFileNameDisplay"></p>
+        </div>
+
+        <button id="convertExcelToTextBtn" class="btn" disabled>
+            Convert Excel to Text & Download
+        </button>
+
+        <div id="excelMessage" class="message"></div>
+
+        <div class="separator"></div>
+
+        <!-- Text to Excel Section -->
+        <h2 class="section-title">Text to Excel Conversion</h2>
+        <p class="text-gray-600 mb-6">Upload a text file formatted with questions, options (A-D), and answers (e.g., 'ANSWER A').</p>
+
+        <div class="input-file-container">
+            <input type="file" id="textFileInput" accept=".txt" class="input-file">
+            <label for="textFileInput" class="input-file-trigger">
+                <span id="textFileUploadText">Select Text File</span>
+            </label>
+            <p class="file-name" id="textFileNameDisplay"></p>
+        </div>
+
+        <button id="convertTextToExcelBtn" class="btn btn-secondary-style" disabled>
+            Convert Text to Excel & Download
+        </button>
+
+        <div id="textMessage" class="message"></div>
+
+        <!-- Hidden download links -->
+        <a id="downloadTextLink" class="hidden" style="display: none;"></a>
+        <a id="downloadExcelLink" class="hidden" style="display: none;"></a>
+    </div>
+
+    <footer class="app-footer">
+        <div class="developer-info">
+            Developed by <a href="https://axript.com.ng" target="_blank" rel="noopener noreferrer">Axript Tech</a>
+        </div>
+        <div class="visitor-info">
+            <i class="fas fa-eye"></i>
+            <span>Visitors: 12345</span> <!-- Placeholder for visitor count -->
+        </div>
+    </footer>
+
+    <!-- jQuery CDN -->
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.7.1/jquery.min.js"></script>
+    <!-- SheetJS (xlsx) CDN -->
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+
+    <script>
+        $(document).ready(function() {
+            let selectedExcelFile = null;
+            let selectedTextFile = null;
+
+            // Function to display messages for Excel section
+            function showExcelMessage(text, type) {
+                const messageBox = $('#excelMessage');
+                messageBox.removeClass('success error info').addClass(type).text(text).fadeIn();
+            }
+
+            // Function to hide messages for Excel section
+            function hideExcelMessage() {
+                $('#excelMessage').fadeOut();
+            }
+
+            // Function to display messages for Text section
+            function showTextMessage(text, type) {
+                const messageBox = $('#textMessage');
+                messageBox.removeClass('success error info').addClass(type).text(text).fadeIn();
+            }
+
+            // Function to hide messages for Text section
+            function hideTextMessage() {
+                $('#textMessage').fadeOut();
+            }
+
+            // Shuffle array function (Fisher-Yates)
+            function shuffleArray(array) {
+                for (let i = array.length - 1; i > 0; i--) {
+                    const j = Math.floor(Math.random() * (i + 1));
+                    [array[i], array[j]] = [array[j], array[i]]; // Swap elements
+                }
+            }
+
+            // --- Excel to Text Conversion Logic ---
+            $('#excelFileInput').on('change', function(e) {
+                selectedExcelFile = e.target.files[0];
+                if (selectedExcelFile) {
+                    $('#excelFileNameDisplay').text(`Selected: ${selectedExcelFile.name}`);
+                    $('#convertExcelToTextBtn').prop('disabled', false).text('Convert Excel to Text & Download');
+                    hideExcelMessage();
+                } else {
+                    $('#excelFileNameDisplay').text('');
+                    $('#convertExcelToTextBtn').prop('disabled', true).text('Select Excel File First');
+                    showExcelMessage('Please select an Excel file.', 'info');
+                }
+            });
+
+            $('#convertExcelToTextBtn').on('click', function() {
+                if (!selectedExcelFile) {
+                    showExcelMessage('No file selected. Please select an Excel file first.', 'error');
+                    return;
+                }
+
+                $('#convertExcelToTextBtn').prop('disabled', true).text('Converting...');
+                hideExcelMessage(); // Hide previous messages
+                showExcelMessage('Processing Excel file...', 'info');
+
+                const reader = new FileReader();
+
+                reader.onload = function(e) {
+                    try {
+                        const data = new Uint8Array(e.target.result);
+                        const workbook = XLSX.read(data, { type: 'array' });
+
+                        // Get the first sheet name
+                        const sheetName = workbook.SheetNames[0];
+                        const worksheet = workbook.Sheets[sheetName];
+
+                        // Convert sheet to JSON array
+                        const jsonRows = XLSX.utils.sheet_to_json(worksheet);
+
+                        const lines = [];
+
+                        jsonRows.forEach((row, index) => {
+                            // Safely convert all values to strings and trim whitespace
+                            const question = (row['QUESTION'] || '').toString().trim();
+                            const correct = (row['CORRECT ANSWER'] || '').toString().trim();
+                            const wrongs = [
+                                (row['WRONG ANSWER 1'] || '').toString().trim(),
+                                (row['WRONG ANSWER 2'] || '').toString().trim(),
+                                (row['WRONG ANSWER 3'] || '').toString().trim()
+                            ].filter(ans => ans !== ''); // Filter out empty wrong answers
+
+                            if (!question || !correct) {
+                                console.warn(`Skipping row ${index + 1} due to missing QUESTION or CORRECT ANSWER.`);
+                                return; // Skip this row if essential data is missing
+                            }
+
+                            // Combine and shuffle all options
+                            let allOptions = [correct, ...wrongs];
+                            // Remove duplicates if any, while preserving order for now
+                            allOptions = [...new Set(allOptions)];
+                            shuffleArray(allOptions);
+
+                            // Ensure we have exactly 4 options by padding with empty strings if necessary
+                            while (allOptions.length < 4) {
+                                allOptions.push('');
+                            }
+                            // Trim to exactly 4 options if more were present (unlikely with 1 correct + 3 wrong)
+                            allOptions = allOptions.slice(0, 4);
+
+
+                            // Map to A–D
+                            const letters = ['A', 'B', 'C', 'D'];
+                            const optionsDict = {};
+                            letters.forEach((letter, i) => {
+                                optionsDict[letter] = allOptions[i];
+                            });
+
+                            // Find letter corresponding to the correct answer
+                            let correctLetter = 'A'; // Default in case correct answer isn't found (shouldn't happen)
+                            for (const letter of letters) {
+                                if (optionsDict[letter] === correct) {
+                                    correctLetter = letter;
+                                    break;
+                                }
+                            }
+
+                            // Build lines for one question block
+                            lines.push(question);
+                            for (const letter of letters) {
+                                lines.push(`${letter}. ${optionsDict[letter]}`);
+                            }
+                            lines.push(`ANSWER ${correctLetter}`);
+                            // Add a blank line between questions for better readability in the text file
+                            lines.push("");
+                        });
+
+                        if (lines.length === 0) {
+                            showExcelMessage('No valid questions found in the Excel file. Please check column headers and data.', 'error');
+                            $('#convertExcelToTextBtn').prop('disabled', false).text('Convert Excel to Text & Download');
+                            return;
+                        }
+
+                        // Step 4: Save to .txt file
+                        const txtFileName = "converted_questions.txt";
+                        const textContent = lines.join("\n");
+
+                        // Step 5: Download
+                        const blob = new Blob([textContent], { type: 'text/plain;charset=utf-8' });
+                        const downloadLink = $('#downloadTextLink');
+                        downloadLink.attr('href', URL.createObjectURL(blob));
+                        downloadLink.attr('download', txtFileName);
+
+                        // Trigger download
+                        downloadLink[0].click();
+
+                        // Clean up the object URL after download
+                        URL.revokeObjectURL(downloadLink.attr('href'));
+
+                        showExcelMessage(`Conversion complete. File '${txtFileName}' is ready for download.`, 'success');
+                        $('#convertExcelToTextBtn').prop('disabled', false).text('Convert Excel to Text & Download');
+                    } catch (error) {
+                        console.error("Error processing Excel file:", error);
+                        showExcelMessage(`Error processing file: ${error.message}. Please ensure it's a valid Excel file with the correct column headers.`, 'error');
+                        $('#convertExcelToTextBtn').prop('disabled', false).text('Convert Excel to Text & Download');
+                    }
+                };
+
+                reader.onerror = function(error) {
+                    console.error("FileReader error:", error);
+                    showExcelMessage('Error reading file. Please try again.', 'error');
+                    $('#convertExcelToTextBtn').prop('disabled', false).text('Convert Excel to Text & Download');
+                };
+
+                reader.readAsArrayBuffer(selectedExcelFile);
+            });
+
+            // --- Text to Excel Conversion Logic ---
+            $('#textFileInput').on('change', function(e) {
+                selectedTextFile = e.target.files[0];
+                if (selectedTextFile) {
+                    $('#textFileNameDisplay').text(`Selected: ${selectedTextFile.name}`);
+                    $('#convertTextToExcelBtn').prop('disabled', false).text('Convert Text to Excel & Download');
+                    hideTextMessage();
+                } else {
+                    $('#textFileNameDisplay').text('');
+                    $('#convertTextToExcelBtn').prop('disabled', true).text('Select Text File First');
+                    showTextMessage('Please select a text file.', 'info');
+                }
+            });
+
+            $('#convertTextToExcelBtn').on('click', function() {
+                if (!selectedTextFile) {
+                    showTextMessage('No file selected. Please select a text file first.', 'error');
+                    return;
+                }
+
+                $('#convertTextToExcelBtn').prop('disabled', true).text('Converting...');
+                hideTextMessage(); // Hide previous messages
+                showTextMessage('Processing text file...', 'info');
+
+                const reader = new FileReader();
+
+                reader.onload = function(e) {
+                    try {
+                        const textContent = e.target.result;
+                        const lines = textContent.split('\n').map(line => line.trim()).filter(line => line !== ''); // Split and trim, remove empty lines
+
+                        const questionsData = [];
+                        let currentQuestion = {};
+                        let state = 'question'; // 'question', 'options', 'answer'
+                        let optionCount = 0;
+
+                        for (const line of lines) {
+                            if (state === 'question') {
+                                currentQuestion = {
+                                    'QUESTION': line,
+                                    'CORRECT ANSWER': '',
+                                    'WRONG ANSWER 1': '',
+                                    'WRONG ANSWER 2': '',
+                                    'WRONG ANSWER 3': ''
+                                };
+                                optionCount = 0;
+                                state = 'options';
+                            } else if (state === 'options') {
+                                const match = line.match(/^([A-D])\.\s*(.*)$/);
+                                if (match) {
+                                    const optionLetter = match[1];
+                                    const optionText = match[2].trim();
+                                    currentQuestion[`OPTION_${optionLetter}`] = optionText; // Temporarily store options
+                                    optionCount++;
+                                    if (optionCount === 4) {
+                                        state = 'answer';
+                                    }
+                                } else {
+                                    // If a line in options state doesn't match option format,
+                                    // it might be a new question or malformed. Reset and try as new question.
+                                    console.warn(`Malformed option line or unexpected content: "${line}". Attempting to re-interpret as new question.`);
+                                    questionsData.push(currentQuestion); // Save incomplete question
+                                    currentQuestion = {
+                                        'QUESTION': line,
+                                        'CORRECT ANSWER': '',
+                                        'WRONG ANSWER 1': '',
+                                        'WRONG ANSWER 2': '',
+                                        'WRONG ANSWER 3': ''
+                                    };
+                                    optionCount = 0;
+                                    state = 'options';
+                                }
+                            } else if (state === 'answer') {
+                                const match = line.match(/^(ANSWER|Answer):\s*([A-D])$/i);
+                                if (match) {
+                                    const correctLetter = match[2].toUpperCase();
+                                    const correctOptionText = currentQuestion[`OPTION_${correctLetter}`];
+
+                                    if (correctOptionText) {
+                                        currentQuestion['CORRECT ANSWER'] = correctOptionText;
+                                        let wrongAnswerIndex = 1;
+                                        ['A', 'B', 'C', 'D'].forEach(letter => {
+                                            if (letter !== correctLetter) {
+                                                const wrongOptionText = currentQuestion[`OPTION_${letter}`];
+                                                if (wrongOptionText) {
+                                                    currentQuestion[`WRONG ANSWER ${wrongAnswerIndex}`] = wrongOptionText;
+                                                    wrongAnswerIndex++;
+                                                }
+                                            }
+                                        });
+                                    } else {
+                                        console.warn(`Correct answer option '${correctLetter}' not found for question: "${currentQuestion['QUESTION']}"`);
+                                    }
+
+                                    // Clean up temporary option keys
+                                    delete currentQuestion.OPTION_A;
+                                    delete currentQuestion.OPTION_B;
+                                    delete currentQuestion.OPTION_C;
+                                    delete currentQuestion.OPTION_D;
+
+                                    questionsData.push(currentQuestion);
+                                    state = 'question'; // Reset for next question
+                                } else {
+                                    // If a line in answer state doesn't match answer format,
+                                    // it might be a new question or malformed.
+                                    console.warn(`Malformed answer line or unexpected content: "${line}". Attempting to re-interpret as new question.`);
+                                    questionsData.push(currentQuestion); // Save incomplete question
+                                    currentQuestion = {
+                                        'QUESTION': line,
+                                        'CORRECT ANSWER': '',
+                                        'WRONG ANSWER 1': '',
+                                        'WRONG ANSWER 2': '',
+                                        'WRONG ANSWER 3': ''
+                                    };
+                                    optionCount = 0;
+                                    state = 'options';
+                                }
+                            }
+                        }
+                        // Add the last question if the file ends without a new question line
+                        if (state !== 'question' && Object.keys(currentQuestion).length > 0) {
+                            questionsData.push(currentQuestion);
+                        }
+
+                        if (questionsData.length === 0) {
+                            showTextMessage('No valid questions found in the text file. Please check the file format.', 'error');
+                            $('#convertTextToExcelBtn').prop('disabled', false).text('Convert Text to Excel & Download');
+                            return;
+                        }
+
+                        // Create a new workbook and add a worksheet
+                        const wb = XLSX.utils.book_new();
+                        const ws = XLSX.utils.json_to_sheet(questionsData, {
+                            header: ['QUESTION', 'CORRECT ANSWER', 'WRONG ANSWER 1', 'WRONG ANSWER 2', 'WRONG ANSWER 3']
+                        });
+                        XLSX.utils.book_append_sheet(wb, ws, "Questions");
+
+                        // Generate Excel file and trigger download
+                        const excelFileName = "reconstructed_questions.xlsx";
+                        XLSX.writeFile(wb, excelFileName);
+
+                        showTextMessage(`Conversion complete. File '${excelFileName}' is ready for download.`, 'success');
+                        $('#convertTextToExcelBtn').prop('disabled', false).text('Convert Text to Excel & Download');
+
+                    } catch (error) {
+                        console.error("Error processing text file:", error);
+                        showTextMessage(`Error processing file: ${error.message}. Please ensure it's a valid Q&A text file.`, 'error');
+                        $('#convertTextToExcelBtn').prop('disabled', false).text('Convert Text to Excel & Download');
+                    }
+                };
+
+                reader.onerror = function(error) {
+                    console.error("FileReader error:", error);
+                    showTextMessage('Error reading file. Please try again.', 'error');
+                    $('#convertTextToExcelBtn').prop('disabled', false).text('Convert Text to Excel & Download');
+                };
+
+                reader.readAsText(selectedTextFile);
+            });
+        });
+    </script>
+</body>
+</html>

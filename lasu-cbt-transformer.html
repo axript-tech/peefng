@@ -1,0 +1,853 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>LASU CBT Question Format Transformer (LASU CQFT)</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="preconnect" href="https://fonts.googleapis.com">
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+    <link href="https://fonts.googleapis.com/css2?family=Quicksand:wght@400;500;600;700&display=swap" rel="stylesheet">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.1.1/css/all.min.css">
+    <script src="https://ajax.googleapis.com/ajax/libs/jquery/3.7.1/jquery.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/xlsx/0.18.5/xlsx.full.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/FileSaver.js/2.0.5/FileSaver.min.js"></script>
+    <script src="https://cdnjs.cloudflare.com/ajax/libs/p5.js/1.4.0/p5.min.js"></script> <script src="https://cdnjs.cloudflare.com/ajax/libs/vanta/0.5.24/vanta.net.min.js"></script> <script>
+        tailwind.config = {
+            theme: {
+                extend: {
+                    fontFamily: {
+                        sans: ['Quicksand', 'sans-serif'],
+                    },
+                    colors: {
+                        'brand-dark': '#1a1a1a', /* From Monogram Empire header */
+                        'brand-gray': '#333333', /* From Monogram Empire header */
+                        'brand-light-gray': '#f2f2f2', /* From Monogram Empire header */
+                        'brand-gold': '#FFD700', /* From Monogram Empire header (preferred over #fcb900) */
+                        'brand-green': '#044F04', /* From PEEF footer */
+                        'brand-light-bg': '#f7fafc', /* From PEEF footer */
+                    }
+                }
+            }
+        }
+    </script>
+    <style>
+        /* Custom styles based on provided PHP files */
+        body {
+            font-family: 'Quicksand', sans-serif;
+            background-color: #f7fafc; /* brand-light-bg - fallback if Vanta fails */
+            display: flex;
+            flex-direction: column; /* Allow footer to stick to bottom */
+            justify-content: flex-start; /* Align to top */
+            align-items: center;
+            min-height: 100vh;
+            margin: 0;
+            padding: 20px;
+            color: #1a1a1a; /* brand-dark */
+            box-sizing: border-box;
+            position: relative; /* Needed for z-index context */
+            /* Vanta.js will manage the background here */
+        }
+        /* No #webgl-background canvas style needed for Vanta.js */
+
+        .main-layout {
+            display: flex;
+            flex-direction: column; /* Stack vertically on small screens */
+            gap: 20px; /* Space between sections */
+            width: 100%;
+            max-width: 1200px; /* Increased max-width for side-by-side layout */
+            margin-top: 2rem;
+            margin-bottom: 20px; /* Space before footer */
+            position: relative; /* Ensure it's above Vanta.js */
+            z-index: 2; /* Ensure it's above Vanta.js background */
+        }
+        @media (min-width: 1024px) { /* On large screens, arrange side-by-side */
+            .main-layout {
+                flex-direction: row;
+                align-items: flex-start; /* Align items to the top */
+                justify-content: center;
+            }
+        }
+
+        .container, .client-info-container {
+            background-color: rgba(255, 255, 255, 0.9); /* Slightly transparent white for vibrancy */
+            padding: 2.5rem; /* 40px */
+            border-radius: 1rem; /* 16px */
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1), 0 4px 6px -2px rgba(0, 0, 0, 0.05);
+            width: 100%; /* Full width on small screens */
+            max-width: 700px; /* Max width for main content on large screens */
+            text-align: center;
+            position: relative; /* Ensure it's above the canvas */
+            z-index: 1; /* Ensure it's above the canvas */
+            backdrop-filter: blur(5px); /* Optional: Frosted glass effect */
+        }
+        .container {
+            /* Removed margin-bottom and margin-top as they are now handled by main-layout */
+        }
+        @media (min-width: 1024px) {
+            .container {
+                flex: 2; /* Takes 2/3 of the space */
+                margin-right: 20px; /* Space between main and sidebar */
+            }
+        }
+
+        .client-info-container {
+            padding: 1rem; /* Minimized padding */
+            /* Removed margin-bottom as it's handled by main-layout */
+        }
+        @media (min-width: 1024px) {
+            .client-info-container {
+                flex: 1; /* Takes 1/3 of the space */
+                margin-left: 0; /* Reset margin from previous layout */
+            }
+        }
+
+        .section-title {
+            font-size: 1.75rem; /* text-2xl */
+            font-weight: 700; /* font-bold */
+            color: #1a1a1a; /* brand-dark */
+            margin-bottom: 1.5rem;
+            padding-bottom: 0.5rem;
+            position: relative;
+            display: inline-block; /* To center the ::after pseudo-element */
+        }
+        .section-title::after {
+            content: '';
+            display: block;
+            width: 60px;
+            height: 4px;
+            background: #FFD700; /* brand-gold */
+            margin: 10px auto 0;
+            border-radius: 2px;
+        }
+        .input-file-container {
+            position: relative;
+            margin-bottom: 1.5rem;
+        }
+        .input-file-trigger {
+            display: block;
+            background-color: #1a1a1a; /* brand-dark */
+            color: white;
+            padding: 0.75rem 1.5rem; /* 12px 24px */
+            border-radius: 0.5rem; /* 8px */
+            cursor: pointer;
+            transition: background-color 0.3s ease, transform 0.2s ease, box-shadow 0.2s ease; /* Enhanced transition */
+            font-weight: 600;
+            text-align: center;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.1);
+        }
+        .input-file-trigger:hover {
+            background-color: #333333; /* brand-gray */
+            transform: translateY(-2px); /* Subtle lift */
+            box-shadow: 0 4px 10px rgba(0,0,0,0.2);
+        }
+        .input-file-trigger:active {
+            transform: translateY(0);
+            box-shadow: 0 1px 3px rgba(0,0,0,0.1);
+        }
+        .input-file {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            opacity: 0;
+            cursor: pointer;
+        }
+        .file-name {
+            margin-top: 0.75rem;
+            font-size: 0.875rem; /* text-sm */
+            color: #4b5563; /* Gray 600 */
+        }
+        .btn {
+            display: inline-flex; /* Use flex for centering spinner */
+            align-items: center;
+            justify-content: center;
+            gap: 0.5rem;
+            font-weight: 700;
+            color: #1a1a1a; /* brand-dark */
+            background-color: #FFD700; /* brand-gold */
+            padding: 0.75rem 2rem;
+            border-radius: 50px; /* More rounded like PEEF buttons */
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            transition: all 0.3s ease;
+            box-shadow: 0 4px 15px rgba(0,0,0,0.1);
+            width: 100%;
+            margin-top: 1.5rem;
+            border: none; /* Ensure no default border */
+            outline: none; /* Ensure no default outline */
+            cursor: pointer;
+        }
+        .btn:hover {
+            transform: translateY(-2px) scale(1.02); /* Slight lift and scale */
+            box-shadow: 0 6px 20px rgba(255, 215, 0, 0.3); /* Gold shadow */
+        }
+        .btn:active {
+            transform: translateY(0);
+            box-shadow: 0 2px 10px rgba(0,0,0,0.1);
+        }
+        .btn:disabled {
+            background-color: #9ca3af; /* Gray 400 */
+            cursor: not-allowed;
+            transform: none;
+            box-shadow: none;
+            color: #ffffff; /* White text for disabled state */
+        }
+        .btn-secondary-style { /* For the green button, using a similar style as PEEF's secondary */
+            background-color: #044F04; /* brand-green */
+            color: white;
+            border: 2px solid #044F04; /* brand-green */
+        }
+        .btn-secondary-style:hover {
+            background-color: #033a03; /* Darker green on hover */
+            border-color: #033a03;
+            color: white;
+        }
+        .btn-secondary-style:disabled {
+            background-color: #9ca3af; /* Gray 400 */
+            border-color: #9ca3af;
+        }
+
+        .message {
+            margin-top: 1.5rem;
+            padding: 0.75rem;
+            border-radius: 0.5rem;
+            font-size: 0.875rem;
+            display: none; /* Hidden by default */
+            text-align: center;
+        }
+        .message.success {
+            background-color: #d1fae5; /* Green 100 */
+            color: #065f46; /* Green 800 */
+        }
+        .message.error {
+            background-color: #fee2e2; /* Red 100 */
+            color: #991b1b; /* Red 800 */
+        }
+        .message.info {
+            background-color: #e0f2fe; /* Blue 100 */
+            color: #1e40af; /* Blue 800 */
+        }
+        .separator {
+            border-top: 1px dashed #d1d5db; /* Gray 300 */
+            margin: 2.5rem 0; /* 40px vertical margin */
+        }
+
+        /* Tab Navigation Styles */
+        .tab-button {
+            padding: 0.75rem 1.5rem;
+            border-radius: 50px; /* Rounded like the new buttons */
+            font-weight: 600;
+            color: #4b5563; /* Gray text */
+            background-color: #e5e7eb; /* Light gray background */
+            transition: all 0.2s ease-in-out; /* Smooth transition */
+            cursor: pointer;
+            border: none;
+            outline: none;
+            box-shadow: 0 2px 5px rgba(0,0,0,0.05); /* Subtle shadow */
+        }
+        .tab-button.active {
+            background-color: #FFD700; /* brand-gold for active tab */
+            color: #1a1a1a; /* brand-dark text */
+            box-shadow: 0 4px 8px rgba(255, 215, 0, 0.3); /* Gold shadow */
+            transform: translateY(-2px); /* Subtle lift for active */
+        }
+        .tab-button:hover:not(.active) {
+            background-color: #d1d5db; /* Darker gray on hover */
+            transform: translateY(-1px); /* Subtle lift on hover */
+        }
+        .tab-button:active {
+            transform: translateY(0);
+            box-shadow: none;
+        }
+
+        /* Loading Spinner */
+        .loading-spinner {
+            border: 4px solid rgba(0, 0, 0, 0.1);
+            border-left-color: #FFD700; /* brand-gold */
+            border-radius: 50%;
+            width: 24px;
+            height: 24px;
+            animation: spin 1s linear infinite;
+            display: none; /* Hidden by default */
+        }
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
+        /* Footer styles */
+        .app-footer {
+            background-color: #1a1a1a; /* brand-dark */
+            color: #a0aec0; /* gray-400 */
+            padding: 1.5rem 0;
+            width: 100%;
+            text-align: center;
+            border-top-left-radius: 1rem;
+            border-top-right-radius: 1rem;
+            margin-top: auto; /* Push footer to bottom */
+            font-size: 0.9rem;
+            position: relative;
+            z-index: 2; /* Above Vanta.js */
+        }
+        .app-footer .developer-info,
+        .app-footer .university-info {
+            display: flex;
+            flex-direction: column; /* Stack info vertically on smaller screens */
+            align-items: center;
+            justify-content: center;
+            gap: 0.5rem;
+            margin-bottom: 0.5rem;
+        }
+        .app-footer a {
+            color: #FFD700; /* brand-gold */
+            text-decoration: none;
+            transition: color 0.3s ease;
+        }
+        .app-footer a:hover {
+            text-decoration: underline;
+        }
+
+        .instruction-label {
+            font-size: 1rem;
+            color: #4b5563;
+            margin-bottom: 1.5rem;
+            font-weight: 500;
+        }
+
+        .client-info-grid {
+            display: grid;
+            grid-template-columns: 1fr;
+            gap: 0.5rem; /* Minimized gap */
+            text-align: left;
+            margin-top: 1rem; /* Minimized margin */
+        }
+        @media (min-width: 640px) { /* Small screens and up */
+            .client-info-grid {
+                grid-template-columns: repeat(2, 1fr);
+            }
+        }
+        .client-info-item {
+            background-color: #f8f8f8;
+            padding: 0.5rem 0.75rem; /* Minimized padding */
+            border-radius: 0.375rem; /* Slightly less rounded */
+            border: 1px solid #eee;
+        }
+        .client-info-item strong {
+            color: #1a1a1a;
+            display: block;
+            margin-bottom: 0.1rem; /* Minimized margin */
+            font-size: 0.85rem; /* Minimized font size */
+        }
+        .client-info-item span {
+            color: #333333;
+            font-size: 0.75rem; /* Minimized font size */
+            word-break: break-all; /* Ensure long strings wrap */
+        }
+        .client-info-loading-spinner {
+            border: 2px solid rgba(0, 0, 0, 0.1); /* Smaller border */
+            border-left-color: #044F04; /* brand-green */
+            border-radius: 50%;
+            width: 16px; /* Smaller spinner */
+            height: 16px; /* Smaller spinner */
+            animation: spin 1s linear infinite;
+            margin: 0 auto;
+            display: inline-block;
+            vertical-align: middle;
+        }
+        /* Smaller refresh button for client info */
+        #refreshClientInfo {
+            padding: 0.5rem 1rem; /* Smaller padding */
+            font-size: 0.8rem; /* Smaller font size */
+            margin-top: 1rem; /* Minimized margin */
+        }
+
+        /* Styles for interactive title */
+        .lasu-logo {
+            max-width: 150px; /* Adjust size as needed */
+            height: auto;
+            margin-bottom: 1rem;
+            transition: transform 0.3s ease;
+            cursor: pointer;
+        }
+        .lasu-logo:hover {
+            transform: scale(1.05); /* Slight zoom on hover */
+        }
+    </style>
+</head>
+<body class="antialiased">
+    <div id="vanta-bg" style="width:100%; height:100vh; position:fixed; top:0; left:0; z-index:0;"></div>
+
+    <div class="main-layout">
+        <div class="container">
+            <img src="https://lasu.edu.ng/home/img/logo1.png" alt="LASU Logo" class="lasu-logo mx-auto">
+            <h1 class="text-3xl font-extrabold text-gray-900 mb-6 ">LASU CBT Question Format Transformer <br>(LASU CQFT)</h1>
+
+            <p class="instruction-label">Choose a conversion type:</p>
+
+            <div class="flex justify-center space-x-4 mb-8">
+                <button id="tab-excel-to-text" class="tab-button active">Excel to Text</button>
+                <button id="tab-text-to-excel" class="tab-button">Text to Excel</button>
+            </div>
+
+            <div id="content-excel-to-text" class="tab-content">
+                <p class="text-gray-600 mb-6 text-center">
+                    Upload an Excel file (.xlsx or .xls) with columns: <code class="font-mono text-sm bg-gray-100 p-1 rounded">QUESTION</code>, <code class="font-mono text-sm bg-gray-100 p-1 rounded">CORRECT ANSWER</code>, <code class="font-mono text-sm bg-gray-100 p-1 rounded">WRONG ANSWER 1</code>, <code class="font-mono text-sm bg-gray-100 p-1 rounded">WRONG ANSWER 2</code>, <code class="font-mono text-sm bg-gray-100 p-1 rounded">WRONG ANSWER 3</code>.
+                    It will be converted to a CBT-ready text file.
+                </p>
+                <div class="flex flex-col items-center gap-4">
+                    <div class="input-file-container w-full">
+                        <input type="file" id="excelFileInput" accept=".xlsx, .xls" class="input-file">
+                        <label for="excelFileInput" class="input-file-trigger">
+                            <span id="excelFileUploadText">Select Excel File</span>
+                        </label>
+                        <p class="file-name" id="excelFileNameDisplay"></p>
+                    </div>
+                    <button id="convertExcelToText" class="btn" disabled>
+                        <span id="excelConvertText">Convert to Text & Download</span>
+                        <div id="excelLoadingSpinner" class="loading-spinner"></div>
+                    </button>
+                    <div id="excelMessage" class="message w-full"></div>
+                </div>
+            </div>
+
+            <div id="content-text-to-excel" class="tab-content hidden">
+                <p class="text-gray-600 mb-6 text-center">
+                    Upload a text file (.txt) formatted as CBT questions (Question, A., B., C., D., ANSWER X).
+                    It will be converted back into an Excel file.
+                </p>
+                <div class="flex flex-col items-center gap-4">
+                    <div class="input-file-container w-full">
+                        <input type="file" id="textFileInput" accept=".txt" class="input-file">
+                        <label for="textFileInput" class="input-file-trigger">
+                            <span id="textFileUploadText">Select Text File</span>
+                        </label>
+                        <p class="file-name" id="textFileNameDisplay"></p>
+                    </div>
+                    <button id="convertTextToExcel" class="btn btn-secondary-style" disabled>
+                        <span id="textConvertText">Convert to Excel & Download</span>
+                        <div id="textLoadingSpinner" class="loading-spinner"></div>
+                    </button>
+                    <div id="textMessage" class="message w-full"></div>
+                </div>
+            </div>
+        </div>
+
+        <div class="client-info-container">
+            <h2 class="section-title">Client Information</h2>
+            <div class="client-info-grid" id="clientInfoDisplay">
+                <div class="client-info-item">
+                    <strong>IP Address:</strong> <span id="ipAddress">Loading... <div class="client-info-loading-spinner"></div></span>
+                </div>
+                <div class="client-info-item">
+                    <strong>Location:</strong> <span id="location">Loading... <div class="client-info-loading-spinner"></div></span>
+                </div>
+                <div class="client-info-item">
+                    <strong>Browser:</strong> <span id="browserType">Detecting...</span>
+                </div>
+                <div class="client-info-item">
+                    <strong>Operating System:</strong> <span id="osType">Detecting...</span>
+                </div>
+                <div class="client-info-item">
+                    <strong>Screen Resolution:</strong> <span id="screenResolution">Detecting...</span>
+                </div>
+                <div class="client-info-item">
+                    <strong>Viewport Size:</strong> <span id="viewportSize">Detecting...</span>
+                </div>
+                <div class="client-info-item">
+                    <strong>Language:</strong> <span id="language">Detecting...</span>
+                </div>
+                <div class="client-info-item">
+                    <strong>Online Status:</strong> <span id="onlineStatus">Detecting...</span>
+                </div>
+            </div>
+            <button id="refreshClientInfo" class="btn mt-6">
+                <i class="fas fa-sync-alt mr-2"></i> Refresh Info
+            </button>
+        </div>
+    </div>
+
+    <footer class="app-footer">
+        <div class="developer-info">
+            Developed by <a href="https://axript.com.ng" target="_blank" rel="noopener noreferrer">Axript Tech</a>
+        </div>
+        <div class="university-info">
+            Department of Computer Science, Faculty of Science, Lagos State University.
+        </div>
+    </footer>
+
+    <script>
+        // Initialize Vanta.js NET effect on the body
+        // Ensure that Vanta.js and p5.js are loaded before this script runs.
+        // It's best to initialize Vanta.js on a div that covers the background,
+        // and let the body background be transparent or a fallback.
+        VANTA.NET({
+            el: "#vanta-bg", // Target the new div
+            mouseControls: true,
+            touchControls: true,
+            gyroControls: false,
+            minHeight: 200.00,
+            minWidth: 200.00,
+            scale: 1.00,
+            scaleMobile: 1.00,
+            color: 0x228B22, // Greenish color, similar to brand-green
+            backgroundColor: 0xf7fafc, // brand-light-bg
+            points: 10.00,
+            maxDistance: 20.00,
+            spacing: 15.00,
+            showDots: true
+        });
+
+
+        // --- Client Information Logic (Moved to global scope) ---
+        async function fetchClientInfo() {
+            // Reset display and show loading spinners
+            $('#ipAddress').html('Loading... <div class="client-info-loading-spinner"></div>');
+            $('#location').html('Loading... <div class="client-info-loading-spinner"></div>');
+            $('#browserType').text('Detecting...');
+            $('#osType').text('Detecting...');
+            $('#screenResolution').text('Detecting...');
+            $('#viewportSize').text('Detecting...');
+            $('#language').text('Detecting...');
+            $('#onlineStatus').text('Detecting...');
+
+            // 1. IP Address and Location
+            try {
+                const response = await fetch('https://ipapi.co/json/');
+                const data = await response.json();
+                $('#ipAddress').text(data.ip || 'N/A');
+                $('#location').text(`${data.city || 'N/A'}, ${data.region || 'N/A'}, ${data.country_name || 'N/A'}`);
+            } catch (error) {
+                console.error("Error fetching IP info:", error);
+                $('#ipAddress').text('Failed to load IP');
+                $('#location').text('Failed to load location');
+            }
+
+            // 2. Browser Type
+            const userAgent = navigator.userAgent;
+            let browserName = "Unknown Browser";
+            if (userAgent.match(/chrome|chromium|crios/i)) {
+                browserName = "Google Chrome";
+            } else if (userAgent.match(/firefox|fxios/i)) {
+                browserName = "Mozilla Firefox";
+            } else if (userAgent.match(/safari/i)) {
+                browserName = "Apple Safari";
+            } else if (userAgent.match(/opr\//i)) {
+                browserName = "Opera";
+            } else if (userAgent.match(/edg/i)) {
+                browserName = "Microsoft Edge";
+            } else if (userAgent.match(/msie|trident/i)) {
+                browserName = "Internet Explorer";
+            }
+            $('#browserType').text(browserName + (userAgent ? ` (${userAgent.split(')')[0].split('(')[1] || ''})` : '')); // Basic version extraction
+
+            // 3. Operating System
+            let osName = "Unknown OS";
+            const platform = navigator.platform;
+            if (platform.includes("Win")) osName = "Windows";
+            else if (platform.includes("Mac")) osName = "macOS";
+            else if (platform.includes("Linux")) osName = "Linux";
+            else if (userAgent.includes("Android")) osName = "Android";
+            else if (userAgent.includes("iOS")) osName = "iOS";
+            $('#osType').text(osName);
+
+            // 4. Screen Resolution
+            $('#screenResolution').text(`${screen.width}x${screen.height}`);
+
+            // 5. Viewport Size
+            $('#viewportSize').text(`${window.innerWidth}x${window.innerHeight}`);
+
+            // 6. Language
+            $('#language').text(navigator.language || 'N/A');
+
+            // 7. Online Status
+            $('#onlineStatus').text(navigator.onLine ? 'Online' : 'Offline');
+        }
+
+
+        // Initialize on window load
+        window.onload = function() {
+            fetchClientInfo(); // Fetch client info on page load
+        };
+
+        $(document).ready(function() {
+            // --- Tab Switching Logic ---
+            $('.tab-button').on('click', function() {
+                $('.tab-button').removeClass('active');
+                $(this).addClass('active');
+                $('.tab-content').addClass('hidden');
+                $('#content-' + $(this).attr('id').replace('tab-', '')).removeClass('hidden');
+
+                // Clear messages and file names when switching tabs
+                $('.message').fadeOut(200, function() {
+                    $(this).removeClass('success error info').text('');
+                });
+                $('#excelFileNameDisplay').text('');
+                $('#textFileNameDisplay').text('');
+                $('#excelFileUploadText').text('Select Excel File');
+                $('#textFileUploadText').text('Select Text File');
+                $('#excelFileInput').val('');
+                $('#textFileInput').val('');
+                $('#convertExcelToText').prop('disabled', true);
+                $('#convertTextToExcel').prop('disabled', true);
+                hideLoading('#excelLoadingSpinner', '#excelConvertText', 'Convert to Text & Download');
+                hideLoading('#textLoadingSpinner', '#textConvertText', 'Convert to Excel & Download');
+            });
+
+            // --- Helper Functions for UI Feedback ---
+            function showMessage(elementId, type, message) {
+                const $messageBox = $(elementId);
+                $messageBox.removeClass('success error info').addClass(type).text(message).fadeIn();
+            }
+
+            function showLoading(spinnerId, buttonTextId) {
+                $(spinnerId).show();
+                $(buttonTextId).text('Processing...');
+                $(buttonTextId).parent().prop('disabled', true);
+            }
+
+            function hideLoading(spinnerId, buttonTextId, originalText) {
+                $(spinnerId).hide();
+                $(buttonTextId).text(originalText);
+                $(buttonTextId).parent().prop('disabled', false);
+            }
+
+            // --- Excel to Text Module ---
+            let excelFile = null;
+
+            $('#excelFileInput').on('change', function() {
+                excelFile = this.files[0];
+                if (excelFile) {
+                    $('#excelFileNameDisplay').text(`Selected: ${excelFile.name}`);
+                    $('#excelFileUploadText').text('Change Excel File');
+                    $('#convertExcelToText').prop('disabled', false);
+                    showMessage('#excelMessage', 'info', `File selected: ${excelFile.name}`);
+                } else {
+                    $('#excelFileNameDisplay').text('');
+                    $('#excelFileUploadText').text('Select Excel File');
+                    $('#convertExcelToText').prop('disabled', true);
+                    showMessage('#excelMessage', 'info', 'No file selected.');
+                }
+            });
+
+            $('#convertExcelToText').on('click', function() {
+                if (!excelFile) {
+                    showMessage('#excelMessage', 'error', 'Please select an Excel file first.');
+                    return;
+                }
+
+                showLoading('#excelLoadingSpinner', '#excelConvertText');
+                showMessage('#excelMessage', 'info', 'Converting Excel to Text...');
+
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    try {
+                        const data = new Uint8Array(e.target.result);
+                        const workbook = XLSX.read(data, { type: 'array' });
+                        const sheetName = workbook.SheetNames[0];
+                        const worksheet = workbook.Sheets[sheetName];
+                        const json = XLSX.utils.sheet_to_json(worksheet);
+
+                        const lines = [];
+                        const letters = ['A', 'B', 'C', 'D'];
+
+                        json.forEach(row => {
+                            const question = String(row['QUESTION'] || '').trim();
+                            const correct = String(row['CORRECT ANSWER'] || '').trim();
+                            const wrongs = [
+                                String(row['WRONG ANSWER 1'] || '').trim(),
+                                String(row['WRONG ANSWER 2'] || '').trim(),
+                                String(row['WRONG ANSWER 3'] || '').trim()
+                            ].filter(w => w !== ''); // Filter out empty wrong answers
+
+                            if (!question || !correct) {
+                                console.warn('Skipping row due to missing question or correct answer:', row);
+                                return; // Skip rows with missing essential data
+                            }
+
+                            let allOptions = [correct, ...wrongs];
+                            // Ensure exactly 4 options by padding with empty strings if necessary
+                            while (allOptions.length < 4) {
+                                allOptions.push('');
+                            }
+                            // Trim to exactly 4 options if more were somehow provided (though schema implies 4)
+                            allOptions = allOptions.slice(0, 4);
+
+                            // Shuffle options
+                            for (let i = allOptions.length - 1; i > 0; i--) {
+                                const j = Math.floor(Math.random() * (i + 1));
+                                [allOptions[i], allOptions[j]] = [allOptions[j], allOptions[i]];
+                            }
+
+                            const optionsDict = {};
+                            letters.forEach((letter, index) => {
+                                optionsDict[letter] = allOptions[index];
+                            });
+
+                            let correctLetter = 'A'; // Default in case correct answer isn't found (shouldn't happen if `correct` is in `allOptions`)
+                            for (const letter of letters) {
+                                if (optionsDict[letter] === correct) {
+                                    correctLetter = letter;
+                                    break;
+                                }
+                            }
+
+                            lines.push(question);
+                            letters.forEach(letter => {
+                                lines.push(`${letter}. ${optionsDict[letter]}`);
+                            });
+                            lines.push(`ANSWER ${correctLetter}`);
+                            lines.push(""); // Add a blank line between questions for readability
+                        });
+
+                        const txtContent = lines.join('\n');
+                        const blob = new Blob([txtContent], { type: 'text/plain;charset=utf-8' });
+                        saveAs(blob, 'converted_questions.txt');
+
+                        showMessage('#excelMessage', 'success', 'Conversion complete! File "converted_questions.txt" downloaded.');
+                    } catch (error) {
+                        console.error('Error converting Excel to Text:', error);
+                        showMessage('#excelMessage', 'error', `Error during conversion: ${error.message}. Check console for details.`);
+                    } finally {
+                        hideLoading('#excelLoadingSpinner', '#excelConvertText', 'Convert to Text & Download');
+                    }
+                };
+                reader.onerror = function() {
+                    console.error('FileReader error:', reader.error);
+                    showMessage('#excelMessage', 'error', 'Failed to read file. Please try again.');
+                    hideLoading('#excelLoadingSpinner', '#excelConvertText', 'Convert to Text & Download');
+                };
+                reader.readAsArrayBuffer(excelFile);
+            });
+
+            // --- Text to Excel Module ---
+            let textFile = null;
+
+            $('#textFileInput').on('change', function() {
+                textFile = this.files[0];
+                if (textFile) {
+                    $('#textFileNameDisplay').text(`Selected: ${textFile.name}`);
+                    $('#textFileUploadText').text('Change Text File');
+                    $('#convertTextToExcel').prop('disabled', false);
+                    showMessage('#textMessage', 'info', `File selected: ${textFile.name}`);
+                } else {
+                    $('#textFileNameDisplay').text('');
+                    $('#textFileUploadText').text('Select Text File');
+                    $('#convertTextToExcel').prop('disabled', true);
+                    showMessage('#textMessage', 'info', 'No file selected.');
+                }
+            });
+
+            $('#convertTextToExcel').on('click', function() {
+                if (!textFile) {
+                    showMessage('#textMessage', 'error', 'Please select a text file first.');
+                    return;
+                }
+
+                showLoading('#textLoadingSpinner', '#textConvertText');
+                showMessage('#textMessage', 'info', 'Converting Text to Excel...');
+
+                const reader = new FileReader();
+                reader.onload = function(e) {
+                    try {
+                        const textContent = e.target.result;
+                        const lines = textContent.split('\n').map(line => line.trim()).filter(line => line.length > 0);
+                        const questionsData = [];
+                        let i = 0;
+
+                        while (i < lines.length) {
+                            const question = lines[i++];
+                            if (!question) { // Skip empty lines that might appear due to extra newlines
+                                continue;
+                            }
+
+                            const options = {};
+                            let correctLetter = '';
+
+                            // Read options A, B, C, D
+                            for (let j = 0; j < 4 && i < lines.length; j++) {
+                                const optionLine = lines[i];
+                                if (optionLine.match(/^[A-D]\.\s/)) {
+                                    options[optionLine[0]] = optionLine.substring(optionLine.indexOf('.') + 1).trim();
+                                    i++;
+                                } else {
+                                    // Malformed format, break or handle error
+                                    console.warn(`Malformed option line or unexpected content at line ${i}: ${optionLine}`);
+                                    break;
+                                }
+                            }
+
+                            // Read answer
+                            if (i < lines.length && lines[i].startsWith("ANSWER ")) {
+                                correctLetter = lines[i].substring(7).trim();
+                                i++;
+                            } else {
+                                console.warn(`Malformed answer line or unexpected content at line ${i}: ${lines[i]}`);
+                                // If answer line is missing, try to proceed, but the data will be incomplete
+                                correctLetter = '';
+                            }
+
+                            const correctAnsText = options[correctLetter] || '';
+                            const wrongAnswers = Object.keys(options)
+                                .filter(key => key !== correctLetter)
+                                .map(key => options[key]);
+
+                            // Ensure we always have 3 wrong answers, padding with empty strings if necessary
+                            while (wrongAnswers.length < 3) {
+                                wrongAnswers.push('');
+                            }
+
+                            questionsData.push({
+                                'QUESTION': question,
+                                'CORRECT ANSWER': correctAnsText,
+                                'WRONG ANSWER 1': wrongAnswers[0] || '',
+                                'WRONG ANSWER 2': wrongAnswers[1] || '',
+                                'WRONG ANSWER 3': wrongAnswers[2] || ''
+                            });
+                        }
+
+                        if (questionsData.length === 0) {
+                            showMessage('#textMessage', 'error', 'No questions found in the text file. Please check the format.');
+                            hideLoading('#textLoadingSpinner', '#textConvertText', 'Convert to Excel & Download');
+                            return;
+                        }
+
+                        // Create a new workbook and add a sheet
+                        const wb = XLSX.utils.book_new();
+                        const ws = XLSX.utils.json_to_sheet(questionsData);
+                        XLSX.utils.book_append_sheet(wb, ws, "Converted Questions");
+
+                        // Write the workbook to an array buffer
+                        const wbout = XLSX.write(wb, { bookType: 'xlsx', type: 'array' });
+                        const blob = new Blob([wbout], { type: 'application/octet-stream' });
+                        saveAs(blob, 'converted_questions.xlsx');
+
+                        showMessage('#textMessage', 'success', 'Conversion complete! File "converted_questions.xlsx" downloaded.');
+
+                    } catch (error) {
+                        console.error('Error converting Text to Excel:', error);
+                        showMessage('#textMessage', 'error', `Error during conversion: ${error.message}. Check console for details. Ensure the text file format is correct.`);
+                    } finally {
+                        hideLoading('#textLoadingSpinner', '#textConvertText', 'Convert to Excel & Download');
+                    }
+                };
+                reader.onerror = function() {
+                    console.error('FileReader error:', reader.error);
+                    showMessage('#textMessage', 'error', 'Failed to read file. Please try again.');
+                    hideLoading('#textLoadingSpinner', '#textConvertText', 'Convert to Excel & Download');
+                };
+                reader.readAsText(textFile);
+            });
+
+            // Bind refresh button
+            $('#refreshClientInfo').on('click', fetchClientInfo);
+
+            // Initial fetch on document ready (if window.onload already called it, this is redundant but safe)
+            if (document.readyState === 'complete') {
+                fetchClientInfo();
+            }
+        });
+    </script>
+</body>
+</html>
