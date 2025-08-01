@@ -7,7 +7,7 @@ require_once __DIR__ . '/../php/includes/session.php';
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>Manage Gallery - Admin Dashboard - PEEF</title>
+    <title>Manage Albums - Admin Dashboard - PEEF</title>
 
     <!-- Tailwind CSS -->
     <script src="https://cdn.tailwindcss.com"></script>
@@ -101,7 +101,7 @@ require_once __DIR__ . '/../php/includes/session.php';
                     <button id="menu-btn" class="lg:hidden text-2xl text-gray-600">
                         <i class="fas fa-bars"></i>
                     </button>
-                    <h2 class="hidden lg:block text-3xl font-bold">Manage Gallery</h2>
+                    <h2 class="hidden lg:block text-3xl font-bold">Manage Gallery Albums</h2>
                 </div>
                 <div class="flex items-center space-x-4">
                     <div class="text-right">
@@ -112,25 +112,24 @@ require_once __DIR__ . '/../php/includes/session.php';
                 </div>
             </header>
             
-            <h2 class="lg:hidden text-2xl font-bold mb-6">Manage Gallery</h2>
+            <h2 class="lg:hidden text-2xl font-bold mb-6">Manage Gallery Albums</h2>
 
             <!-- Main Table Card -->
             <div class="bg-white p-6 rounded-2xl shadow-lg">
                 <div class="d-flex flex-column flex-sm-row justify-content-between align-items-center mb-4">
-                    <h3 class="text-xl font-bold mb-3 sm:mb-0">All Images</h3>
-                    <button id="add-image-btn" class="btn btn-warning fw-bold text-dark w-100 sm:w-auto">
-                        <i class="fas fa-plus me-2"></i>Upload New Image
+                    <h3 class="text-xl font-bold mb-3 sm:mb-0">All Albums</h3>
+                    <button id="add-album-btn" class="btn btn-warning fw-bold text-dark w-100 sm:w-auto">
+                        <i class="fas fa-plus me-2"></i>Add New Album
                     </button>
                 </div>
                 
                 <div class="table-responsive">
-                    <table id="gallery-table" class="table table-hover" style="width:100%">
+                    <table id="albums-table" class="table table-hover" style="width:100%">
                         <thead>
                             <tr>
-                                <th>Preview</th>
-                                <th>Title</th>
-                                <th>Album</th>
-                                <th>Date</th>
+                                <th>Album Name</th>
+                                <th>Description</th>
+                                <th>Date Created</th>
                                 <th>Actions</th>
                             </tr>
                         </thead>
@@ -141,47 +140,32 @@ require_once __DIR__ . '/../php/includes/session.php';
         </main>
     </div>
     
-    <!-- Add/Edit Image Modal -->
-    <div class="modal fade" id="image-modal" tabindex="-1" aria-labelledby="imageModalLabel" aria-hidden="true">
+    <!-- Add/Edit Album Modal -->
+    <div class="modal fade" id="album-modal" tabindex="-1" aria-labelledby="albumModalLabel" aria-hidden="true">
         <div class="modal-dialog">
             <div class="modal-content">
                 <div class="modal-header">
-                    <h5 class="modal-title" id="imageModalLabel">Add New Image</h5>
+                    <h5 class="modal-title" id="albumModalLabel">Add New Album</h5>
                     <button type="button" class="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
                 </div>
                 <div class="modal-body">
                     <div id="modal-form-message" class="d-none"></div>
-                    <form id="image-form" enctype="multipart/form-data">
-                        <input type="hidden" id="image_id" name="id">
+                    <form id="album-form">
+                        <input type="hidden" id="album_id" name="id">
                         <input type="hidden" id="action" name="action" value="create">
-                        <input type="hidden" id="existing_image_path" name="existing_image">
                         <div class="mb-3">
-                            <label for="title" class="form-label">Image Title</label>
-                            <input type="text" class="form-control" id="title" name="title" required>
-                        </div>
-                        <div class="mb-3">
-                            <label for="album_id" class="form-label">Album</label>
-                            <select class="form-select" id="album_id" name="album_id" required>
-                                <!-- Options will be populated by jQuery -->
-                            </select>
+                            <label for="name" class="form-label">Album Name</label>
+                            <input type="text" class="form-control" id="name" name="name" required>
                         </div>
                         <div class="mb-3">
                             <label for="description" class="form-label">Description (Optional)</label>
                             <textarea class="form-control" id="description" name="description" rows="3"></textarea>
                         </div>
-                        <div class="mb-3">
-                            <label for="image_file" class="form-label">Image File</label>
-                            <input class="form-control" type="file" id="image_file" name="image_file">
-                        </div>
-                        <div id="image-preview-container" class="mb-3 d-none">
-                            <label class="form-label">Current Image</label>
-                            <img id="image-preview" src="" alt="Image Preview" class="img-thumbnail" style="max-height: 150px;">
-                        </div>
                     </form>
                 </div>
                 <div class="modal-footer">
                     <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
-                    <button type="button" id="save-image-btn" class="btn btn-warning text-dark fw-bold">Save Image</button>
+                    <button type="button" id="save-album-btn" class="btn btn-warning text-dark fw-bold">Save Album</button>
                 </div>
             </div>
         </div>
@@ -192,7 +176,7 @@ require_once __DIR__ . '/../php/includes/session.php';
         <div class="modal-dialog">
             <div class="modal-content">
                 <div class="modal-header"><h5 class="modal-title">Confirm Deletion</h5><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div>
-                <div class="modal-body">Are you sure you want to delete this image: <strong id="image-name-to-delete"></strong>?</div>
+                <div class="modal-body">Are you sure you want to delete this album: <strong id="album-name-to-delete"></strong>?</div>
                 <div class="modal-footer">
                     <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Cancel</button>
                     <button type="button" id="confirm-delete-btn" class="btn btn-danger">Delete</button>
@@ -218,64 +202,44 @@ require_once __DIR__ . '/../php/includes/session.php';
                 sidebar.classList.toggle('-translate-x-full');
             });
 
-            // Fetch albums for the dropdown
-            $.ajax({
-                url: '../php/api/gallery_albums.php',
-                type: 'GET',
-                dataType: 'json',
-                success: function(response) {
-                    if(response.data) {
-                        const albumSelect = $('#album_id');
-                        albumSelect.empty();
-                        albumSelect.append('<option value="">Select an Album...</option>');
-                        response.data.forEach(album => {
-                            albumSelect.append(`<option value="${album.id}">${album.name}</option>`);
-                        });
-                    }
-                }
-            });
-
-            var table = $('#gallery-table').DataTable({
-                "ajax": { "url": "../php/api/gallery.php", "dataSrc": "data" },
+            var table = $('#albums-table').DataTable({
+                "ajax": { "url": "../php/api/gallery_albums.php", "dataSrc": "data" },
                 "columns": [
-                    { "data": "image_path", "render": function(data) { return `<img src="../${data}" class="rounded" style="width: 100px; height: 75px; object-fit: cover;">`; } },
-                    { "data": "title" },
-                    { "data": "album_name" },
+                    { "data": "name" },
+                    { "data": "description" },
                     { "data": "created_at" },
                     { 
                         "data": "id", 
                         "orderable": false,
                         "render": function(data, type, row) {
                             return `<button class="btn btn-light btn-sm action-btn edit-btn" title="Edit" data-id="${data}"><i class="fas fa-edit text-primary"></i></button>
-                                    <button class="btn btn-light btn-sm action-btn delete-btn" title="Delete" data-id="${data}" data-name="${row.title}"><i class="fas fa-trash text-danger"></i></button>`;
+                                    <button class="btn btn-light btn-sm action-btn delete-btn" title="Delete" data-id="${data}" data-name="${row.name}"><i class="fas fa-trash text-danger"></i></button>`;
                         }
                     }
                 ],
-                "order": [[3, 'desc']],
-                "columnDefs": [ { "targets": [0, 2, 3, 4], "className": "text-center" } ]
+                "order": [[2, 'desc']],
+                "columnDefs": [ { "targets": [1, 2, 3], "className": "text-center" } ]
             });
 
-            const imageModal = new bootstrap.Modal(document.getElementById('image-modal'));
+            const albumModal = new bootstrap.Modal(document.getElementById('album-modal'));
             
-            $('#add-image-btn').on('click', function() {
-                $('#image-form')[0].reset();
-                $('#imageModalLabel').text('Add New Image');
+            $('#add-album-btn').on('click', function() {
+                $('#album-form')[0].reset();
+                $('#albumModalLabel').text('Add New Album');
                 $('#action').val('create');
-                $('#image_id').val('');
-                $('#image_file').prop('required', true);
-                $('#image-preview-container').addClass('d-none');
-                imageModal.show();
+                $('#album_id').val('');
+                albumModal.show();
             });
 
-            $('#save-image-btn').on('click', function() {
-                const formData = new FormData($('#image-form')[0]);
+            $('#save-album-btn').on('click', function() {
+                const formData = new FormData($('#album-form')[0]);
                 $.ajax({
-                    type: 'POST', url: '../php/api/gallery.php', data: formData, dataType: 'json', contentType: false, processData: false,
+                    type: 'POST', url: '../php/api/gallery_albums.php', data: formData, dataType: 'json', contentType: false, processData: false,
                     success: function(response) {
                         if (response.status === 'success') {
                             showToast(response.message, 'success');
                             table.ajax.reload();
-                            imageModal.hide();
+                            albumModal.hide();
                         } else {
                             $('#modal-form-message').html('<div class="alert alert-danger">' + response.message + '</div>').removeClass('d-none');
                         }
@@ -284,34 +248,29 @@ require_once __DIR__ . '/../php/includes/session.php';
                 });
             });
 
-            $('#gallery-table tbody').on('click', '.edit-btn', function() {
+            $('#albums-table tbody').on('click', '.edit-btn', function() {
                 const rowData = table.row($(this).parents('tr')).data();
-                $('#imageModalLabel').text('Edit Image');
+                $('#albumModalLabel').text('Edit Album');
                 $('#action').val('update');
-                $('#image_id').val(rowData.id);
-                $('#title').val(rowData.title);
-                $('#album_id').val(rowData.album_id);
+                $('#album_id').val(rowData.id);
+                $('#name').val(rowData.name);
                 $('#description').val(rowData.description);
-                $('#existing_image_path').val(rowData.image_path);
-                $('#image-preview').attr('src', '../' + rowData.image_path);
-                $('#image-preview-container').removeClass('d-none');
-                $('#image_file').prop('required', false);
-                imageModal.show();
+                albumModal.show();
             });
 
-            let imageIdToDelete = null;
+            let albumIdToDelete = null;
             const deleteModal = new bootstrap.Modal(document.getElementById('delete-confirm-modal'));
 
-            $('#gallery-table tbody').on('click', '.delete-btn', function() {
-                imageIdToDelete = $(this).data('id');
-                $('#image-name-to-delete').text($(this).data('name'));
+            $('#albums-table tbody').on('click', '.delete-btn', function() {
+                albumIdToDelete = $(this).data('id');
+                $('#album-name-to-delete').text($(this).data('name'));
                 deleteModal.show();
             });
 
             $('#confirm-delete-btn').on('click', function() {
-                if (imageIdToDelete) {
+                if (albumIdToDelete) {
                     $.ajax({
-                        type: 'POST', url: '../php/api/gallery.php', data: { action: 'delete', id: imageIdToDelete }, dataType: 'json',
+                        type: 'POST', url: '../php/api/gallery_albums.php', data: { action: 'delete', id: albumIdToDelete }, dataType: 'json',
                         success: function(response) {
                             if (response.status === 'success') {
                                 showToast(response.message, 'success');
@@ -321,7 +280,7 @@ require_once __DIR__ . '/../php/includes/session.php';
                             }
                         },
                         error: function() { showToast('An unexpected error occurred.', 'danger'); },
-                        complete: function() { deleteModal.hide(); imageIdToDelete = null; }
+                        complete: function() { deleteModal.hide(); albumIdToDelete = null; }
                     });
                 }
             });

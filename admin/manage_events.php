@@ -135,13 +135,6 @@ require_once __DIR__ . '/../php/includes/session.php';
             background-color: #f8f9fa;
             border-left: 4px solid var(--brand-green);
         }
-        .stat-card {
-            background-color: white;
-            border-radius: 0.5rem;
-            padding: 1rem;
-            text-align: center;
-            box-shadow: 0 2px 4px rgba(0,0,0,0.05);
-        }
     </style>
 </head>
 <body>
@@ -205,7 +198,6 @@ require_once __DIR__ . '/../php/includes/session.php';
                                             <th>Event Title</th>
                                             <th>Date</th>
                                             <th>Location</th>
-                                            <th>Price</th>
                                             <th>Actions</th>
                                         </tr>
                                     </thead>
@@ -250,9 +242,10 @@ require_once __DIR__ . '/../php/includes/session.php';
                 </div>
                 <div class="modal-body">
                     <div id="modal-form-message" class="d-none"></div>
-                    <form id="event-form">
+                    <form id="event-form" enctype="multipart/form-data">
                         <input type="hidden" id="event_id" name="id">
                         <input type="hidden" id="action" name="action" value="create">
+                        <input type="hidden" id="existing_poster" name="existing_poster">
                         <div class="mb-3">
                             <label for="title" class="form-label">Event Title</label>
                             <input type="text" class="form-control" id="title" name="title" required>
@@ -262,23 +255,20 @@ require_once __DIR__ . '/../php/includes/session.php';
                             <textarea class="form-control" id="description" name="description" rows="5" required></textarea>
                         </div>
                         <div class="row g-3">
-                            <div class="col-md-6">
-                                <label for="start_datetime" class="form-label">Start Date & Time</label>
-                                <input type="datetime-local" class="form-control" id="start_datetime" name="start_datetime" required>
-                            </div>
-                            <div class="col-md-6">
-                                <label for="end_datetime" class="form-label">End Date & Time</label>
-                                <input type="datetime-local" class="form-control" id="end_datetime" name="end_datetime" required>
-                            </div>
-                            <div class="col-md-6">
-                                <label for="location" class="form-label">Location</label>
-                                <input type="text" class="form-control" id="location" name="location" required>
-                            </div>
-                            <div class="col-md-6">
-                                <label for="ticket_price" class="form-label">Ticket Price (NGN)</label>
-                                <input type="number" step="0.01" class="form-control" id="ticket_price" name="ticket_price" required>
+                            <div class="col-md-6"><label for="start_datetime" class="form-label">Start Date & Time</label><input type="datetime-local" class="form-control" id="start_datetime" name="start_datetime" required></div>
+                            <div class="col-md-6"><label for="end_datetime" class="form-label">End Date & Time</label><input type="datetime-local" class="form-control" id="end_datetime" name="end_datetime" required></div>
+                            <div class="col-md-6"><label for="location" class="form-label">Location</label><input type="text" class="form-control" id="location" name="location" required></div>
+                            <div class="col-md-6"><label for="poster_image" class="form-label">Poster Image</label><input class="form-control" type="file" id="poster_image" name="poster_image"></div>
+                        </div>
+                        <hr class="my-4">
+                        <h5 class="mb-3">Participation Tiers</h5>
+                        <div id="tier-inputs">
+                            <div class="row g-3 mb-2 align-items-center">
+                                <div class="col-5"><input type="text" name="tier_name[]" class="form-control" placeholder="Tier Name (e.g., Regular)" required></div>
+                                <div class="col-5"><input type="number" name="tier_cost[]" class="form-control" placeholder="Cost (NGN)" required></div>
                             </div>
                         </div>
+                        <button type="button" id="add-tier-btn" class="btn btn-sm btn-outline-success mt-2"><i class="fas fa-plus me-1"></i> Add Tier</button>
                     </form>
                 </div>
                 <div class="modal-footer">
@@ -310,6 +300,12 @@ require_once __DIR__ . '/../php/includes/session.php';
     <script src="https://cdn.datatables.net/2.0.8/js/dataTables.bootstrap5.js"></script>
     <script>
         function format(d) {
+            let tiersHtml = '<ul class="list-unstyled">';
+            d.tiers.forEach(tier => {
+                tiersHtml += `<li>${tier.tier_name}: <strong>₦${new Intl.NumberFormat().format(tier.cost)}</strong></li>`;
+            });
+            tiersHtml += '</ul>';
+
             return (
                 `<div class="p-4 child-row-card">
                     <div class="row align-items-center">
@@ -322,12 +318,8 @@ require_once __DIR__ . '/../php/includes/session.php';
                             <hr>
                             <div class="row">
                                 <div class="col-md-6">
-                                    <p><strong>Ticket Prices:</strong></p>
-                                    <ul>
-                                        <li>Basic: ₦${new Intl.NumberFormat().format(d.ticket_price * 1.0)}</li>
-                                        <li>Premium: ₦${new Intl.NumberFormat().format(d.ticket_price * 0.8)} (20% off)</li>
-                                        <li>Donor: Free</li>
-                                    </ul>
+                                    <p><strong>Participation Tiers:</strong></p>
+                                    ${tiersHtml}
                                 </div>
                                 <div class="col-md-6">
                                     <a href="manage_attendees.php?event_id=${d.id}" class="btn btn-outline-primary w-100">
@@ -349,7 +341,6 @@ require_once __DIR__ . '/../php/includes/session.php';
                     { "data": "title" },
                     { "data": "start_datetime" },
                     { "data": "location" },
-                    { "data": "ticket_price", "render": $.fn.dataTable.render.number(',', '.', 2, '₦') },
                     { 
                         "data": "id", 
                         "orderable": false,
@@ -360,7 +351,7 @@ require_once __DIR__ . '/../php/includes/session.php';
                     }
                 ],
                 "order": [[2, 'desc']],
-                "columnDefs": [ { "targets": [0, 2, 3, 4, 5], "className": "text-center" } ]
+                "columnDefs": [ { "targets": [0, 2, 3, 4], "className": "text-center" } ]
             });
 
             const eventModal = new bootstrap.Modal(document.getElementById('event-modal'));
@@ -370,16 +361,22 @@ require_once __DIR__ . '/../php/includes/session.php';
                 $('#eventModalLabel').text('Add New Event');
                 $('#action').val('create');
                 $('#event_id').val('');
+                $('#tier-inputs').html('<div class="row g-3 mb-2 align-items-center"><div class="col-5"><input type="text" name="tier_name[]" class="form-control" placeholder="Tier Name (e.g., Regular)" required></div><div class="col-5"><input type="number" name="tier_cost[]" class="form-control" placeholder="Cost (NGN)" required></div></div>');
                 eventModal.show();
             });
 
+            $('#add-tier-btn').on('click', function() {
+                $('#tier-inputs').append('<div class="row g-3 mb-2 align-items-center"><div class="col-5"><input type="text" name="tier_name[]" class="form-control" placeholder="Tier Name"></div><div class="col-5"><input type="number" name="tier_cost[]" class="form-control" placeholder="Cost (NGN)"></div><div class="col-2"><button type="button" class="btn btn-sm btn-outline-danger remove-tier-btn"><i class="fas fa-times"></i></button></div></div>');
+            });
+
+            $('#tier-inputs').on('click', '.remove-tier-btn', function() {
+                $(this).closest('.row').remove();
+            });
+
             $('#save-event-btn').on('click', function() {
-                const $form = $('#event-form');
+                const formData = new FormData($('#event-form')[0]);
                 $.ajax({
-                    type: 'POST',
-                    url: '../php/api/events.php',
-                    data: $form.serialize(),
-                    dataType: 'json',
+                    type: 'POST', url: '../php/api/events.php', data: formData, dataType: 'json', contentType: false, processData: false,
                     success: function(response) {
                         if (response.status === 'success') {
                             showToast(response.message, 'success');
@@ -389,9 +386,7 @@ require_once __DIR__ . '/../php/includes/session.php';
                             $('#modal-form-message').html('<div class="alert alert-danger">' + response.message + '</div>').removeClass('d-none');
                         }
                     },
-                    error: function() {
-                        $('#modal-form-message').html('<div class="alert alert-danger">An unexpected error occurred.</div>').removeClass('d-none');
-                    }
+                    error: function() { $('#modal-form-message').html('<div class="alert alert-danger">An unexpected error occurred.</div>').removeClass('d-none'); }
                 });
             });
 
@@ -406,8 +401,18 @@ require_once __DIR__ . '/../php/includes/session.php';
                 $('#start_datetime').val(rowData.start_datetime.replace(' ', 'T'));
                 $('#end_datetime').val(rowData.end_datetime.replace(' ', 'T'));
                 $('#location').val(rowData.location);
-                $('#ticket_price').val(rowData.ticket_price);
+                $('#existing_poster').val(rowData.poster_image);
                 
+                const tierInputs = $('#tier-inputs');
+                tierInputs.empty();
+                if (rowData.tiers && rowData.tiers.length > 0) {
+                    rowData.tiers.forEach(tier => {
+                        tierInputs.append(`<div class="row g-3 mb-2 align-items-center"><div class="col-5"><input type="text" name="tier_name[]" class="form-control" value="${tier.tier_name}" required></div><div class="col-5"><input type="number" name="tier_cost[]" class="form-control" value="${tier.cost}" required></div><div class="col-2"><button type="button" class="btn btn-sm btn-outline-danger remove-tier-btn"><i class="fas fa-times"></i></button></div></div>`);
+                    });
+                } else {
+                     tierInputs.html('<div class="row g-3 mb-2 align-items-center"><div class="col-5"><input type="text" name="tier_name[]" class="form-control" placeholder="Tier Name (e.g., Regular)" required></div><div class="col-5"><input type="number" name="tier_cost[]" class="form-control" placeholder="Cost (NGN)" required></div></div>');
+                }
+
                 eventModal.show();
             });
 
@@ -423,25 +428,15 @@ require_once __DIR__ . '/../php/includes/session.php';
             $('#confirm-delete-btn').on('click', function() {
                 if (eventIdToDelete) {
                     $.ajax({
-                        type: 'POST',
-                        url: '../php/api/events.php',
-                        data: { action: 'delete', id: eventIdToDelete },
-                        dataType: 'json',
+                        type: 'POST', url: '../php/api/events.php', data: { action: 'delete', id: eventIdToDelete }, dataType: 'json',
                         success: function(response) {
                             if (response.status === 'success') {
                                 showToast(response.message, 'success');
                                 table.ajax.reload();
-                            } else {
-                                showToast(response.message, 'danger');
-                            }
+                            } else { showToast(response.message, 'danger'); }
                         },
-                        error: function() {
-                            showToast('An unexpected error occurred.', 'danger');
-                        },
-                        complete: function() {
-                            deleteModal.hide();
-                            eventIdToDelete = null;
-                        }
+                        error: function() { showToast('An unexpected error occurred.', 'danger'); },
+                        complete: function() { deleteModal.hide(); eventIdToDelete = null; }
                     });
                 }
             });

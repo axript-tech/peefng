@@ -1,106 +1,116 @@
 <?php
 // ------------------------------------------------------
-// PEEF Platform - Events API Endpoint
+// PEEF Platform - Events API Endpoint (Full CRUD)
 // ------------------------------------------------------
 // This script provides a secure API to fetch, create,
 // update, and delete event data from the database.
 // ------------------------------------------------------
 
-// Set the content type header to JSON.
 header('Content-Type: application/json');
 
-// Include all necessary core files.
 require_once __DIR__ . '/../includes/db_connect.php';
 require_once __DIR__ . '/../includes/functions.php';
-require_once __DIR__ . '/../includes/session.php'; // This also starts the session.
+require_once __DIR__ . '/../includes/session.php';
 
-// Initialize the response array.
-$response = [
-    'status' => 'error',
-    'message' => 'An unknown error occurred.'
-];
+$response = ['status' => 'error', 'message' => 'An unknown error occurred.'];
 
-// ** Security Check **
-// Only allow GET requests for public viewing. POST for modifications requires admin login.
-if ($_SERVER['REQUEST_METHOD'] === 'POST' && !is_admin_logged_in()) {
-    http_response_code(403); // Forbidden
+if (!is_admin_logged_in()) {
+    http_response_code(403);
     $response['message'] = 'Access denied.';
     echo json_encode($response);
     exit;
 }
 
-
-// Handle different request methods
 $method = $_SERVER['REQUEST_METHOD'];
 
 if ($method === 'GET') {
-    // --- HANDLE FETCH (READ) REQUESTS ---
     try {
-        $sql = "SELECT id, title, description, start_datetime, end_datetime, location, ticket_price, poster_image 
-                FROM events 
-                ORDER BY start_datetime DESC";
-        
+        $sql = "SELECT id, title, description, start_datetime, end_datetime, location, poster_image FROM events ORDER BY start_datetime DESC";
         $stmt = $pdo->query($sql);
         $events = $stmt->fetchAll(PDO::FETCH_ASSOC);
 
-        $response['status'] = 'success';
-        $response['data'] = $events;
+        foreach ($events as &$event) {
+            $tier_stmt = $pdo->prepare("SELECT tier_name, cost FROM event_participation_tiers WHERE event_id = ?");
+            $tier_stmt->execute([$event['id']]);
+            $event['tiers'] = $tier_stmt->fetchAll(PDO::FETCH_ASSOC);
+        }
 
+        $response = ['data' => $events];
     } catch (PDOException $e) {
         http_response_code(500);
         $response['message'] = 'Database error: ' . $e->getMessage();
     }
-
 } elseif ($method === 'POST' && isset($_POST['action'])) {
-
     $action = $_POST['action'];
-    
+
     if ($action === 'create' || $action === 'update') {
-        // --- HANDLE CREATE AND UPDATE ---
         $title = sanitize_input($_POST['title']);
         $description = sanitize_input($_POST['description']);
         $start_datetime = str_replace('T', ' ', $_POST['start_datetime']);
         $end_datetime = str_replace('T', ' ', $_POST['end_datetime']);
         $location = sanitize_input($_POST['location']);
-        $ticket_price = filter_input(INPUT_POST, 'ticket_price', FILTER_SANITIZE_NUMBER_FLOAT, FILTER_FLAG_ALLOW_FRACTION);
         $created_by = $_SESSION['admin_user_id'];
+        $id = filter_input(INPUT_POST, 'id', FILTER_SANITIZE_NUMBER_INT);
         
-        if (empty($title) || empty($description) || empty($start_datetime)) {
-            $response['message'] = 'Please fill in all required fields.';
-        } else {
-            try {
-                if ($action === 'update') {
-                    $id = filter_input(INPUT_POST, 'id', FILTER_SANITIZE_NUMBER_INT);
-                    $sql = "UPDATE events SET title=?, description=?, start_datetime=?, end_datetime=?, location=?, ticket_price=? WHERE id=?";
-                    $stmt = $pdo->prepare($sql);
-                    $stmt->execute([$title, $description, $start_datetime, $end_datetime, $location, $ticket_price, $id]);
-                    $response['message'] = 'Event updated successfully!';
-                } else {
-                    $sql = "INSERT INTO events (title, description, start_datetime, end_datetime, location, ticket_price, created_by) VALUES (?, ?, ?, ?, ?, ?, ?)";
-                    $stmt = $pdo->prepare($sql);
-                    $stmt->execute([$title, $description, $start_datetime, $end_datetime, $location, $ticket_price, $created_by]);
-                    $response['message'] = 'Event created successfully!';
-                }
-                $response['status'] = 'success';
-            } catch (PDOException $e) {
-                http_response_code(500);
-                $response['message'] = 'Database error: ' . $e->getMessage();
+        $posterPath = $_POST['existing_poster'] ?? null;
+        if (isset($_FILES['poster_image']) && $_FILES['poster_image']['error'] === UPLOAD_ERR_OK) {
+            $uploadDir = __DIR__ . '/../../uploads/events/';
+            if (!is_dir($uploadDir)) { mkdir($uploadDir, 0755, true); }
+            $fileName = 'event_' . time() . '_' . basename($_FILES['poster_image']['name']);
+            $targetPath = $uploadDir . $fileName;
+            if (move_uploaded_file($_FILES['poster_image']['tmp_name'], $targetPath)) {
+                $posterPath = 'uploads/events/' . $fileName;
             }
         }
+
+        try {
+            $pdo->beginTransaction();
+            if ($action === 'update' && $id) {
+                $sql = "UPDATE events SET title=?, description=?, start_datetime=?, end_datetime=?, location=?, poster_image=? WHERE id=?";
+                $stmt = $pdo->prepare($sql);
+                $stmt->execute([$title, $description, $start_datetime, $end_datetime, $location, $posterPath, $id]);
+                
+                // Clear old tiers before adding new ones
+                $stmt = $pdo->prepare("DELETE FROM event_participation_tiers WHERE event_id = ?");
+                $stmt->execute([$id]);
+                
+                $response['message'] = 'Event updated successfully!';
+            } else {
+                $sql = "INSERT INTO events (title, description, start_datetime, end_datetime, location, created_by, poster_image) VALUES (?, ?, ?, ?, ?, ?, ?)";
+                $stmt = $pdo->prepare($sql);
+                $stmt->execute([$title, $description, $start_datetime, $end_datetime, $location, $created_by, $posterPath]);
+                $id = $pdo->lastInsertId();
+                $response['message'] = 'Event created successfully!';
+            }
+
+            // Insert ticket tiers
+            if (isset($_POST['tier_name']) && is_array($_POST['tier_name'])) {
+                $tierSql = "INSERT INTO event_participation_tiers (event_id, tier_name, cost) VALUES (?, ?, ?)";
+                $tierStmt = $pdo->prepare($tierSql);
+                for ($i = 0; $i < count($_POST['tier_name']); $i++) {
+                    $tier_name = sanitize_input($_POST['tier_name'][$i]);
+                    $cost = filter_var($_POST['tier_cost'][$i], FILTER_SANITIZE_NUMBER_FLOAT, FILTER_FLAG_ALLOW_FRACTION);
+                    if (!empty($tier_name) && is_numeric($cost)) {
+                        $tierStmt->execute([$id, $tier_name, $cost]);
+                    }
+                }
+            }
+            
+            $pdo->commit();
+            $response['status'] = 'success';
+
+        } catch (PDOException $e) {
+            $pdo->rollBack();
+            http_response_code(500);
+            $response['message'] = 'Database error: ' . $e->getMessage();
+        }
     } elseif ($action === 'delete') {
-        // --- HANDLE DELETE REQUEST ---
         $id = filter_input(INPUT_POST, 'id', FILTER_SANITIZE_NUMBER_INT);
         if ($id) {
             try {
-                $sql = "DELETE FROM events WHERE id = ?";
-                $stmt = $pdo->prepare($sql);
+                $stmt = $pdo->prepare("DELETE FROM events WHERE id = ?");
                 $stmt->execute([$id]);
-                if ($stmt->rowCount() > 0) {
-                    $response['status'] = 'success';
-                    $response['message'] = 'Event deleted successfully.';
-                } else {
-                    $response['message'] = 'Event not found or could not be deleted.';
-                }
+                $response = ['status' => 'success', 'message' => 'Event deleted successfully.'];
             } catch (PDOException $e) {
                 http_response_code(500);
                 $response['message'] = 'Database error: ' . $e->getMessage();
@@ -111,12 +121,7 @@ if ($method === 'GET') {
     } else {
         $response['message'] = 'Invalid action specified.';
     }
-
-} else {
-    http_response_code(405); // Method Not Allowed
-    $response['message'] = 'Invalid request method.';
 }
 
-// Encode the response array into JSON and output it.
 echo json_encode($response);
 ?>

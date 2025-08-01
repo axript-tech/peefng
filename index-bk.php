@@ -252,6 +252,40 @@
         .video-playlist .playlist-item:hover:not(.active) {
             background-color: #f3f4f6;
         }
+        
+        /* Interactive Map */
+        #map-container {
+            position: relative;
+        }
+        .state {
+            fill: #E6F2E6;
+            stroke: var(--brand-green);
+            stroke-width: 1px;
+            transition: fill 0.3s ease;
+        }
+        .state:hover {
+            fill: var(--brand-gold);
+        }
+        .member-circle {
+            fill: var(--brand-green);
+            opacity: 0.7;
+            pointer-events: none; /* Circles don't block hover on states */
+        }
+        .map-tooltip {
+            position: absolute;
+            text-align: center;
+            width: auto;
+            padding: 8px;
+            font: 12px sans-serif;
+            background: var(--brand-dark);
+            color: white;
+            border: 0px;
+            border-radius: 8px;
+            pointer-events: none;
+            opacity: 0;
+            transition: opacity 0.3s ease;
+        }
+
     </style>
 </head>
 <body class="bg-brand-light-bg">
@@ -296,7 +330,7 @@
 
     <!-- Hero Section -->
     <section class="hero-slider">
-        <div style="background-image: linear-gradient(rgba(4, 79, 4, 0.7), rgba(0, 0, 0, 0.6)), url('https://images.unsplash.com/photo-1541746972996-4e0b0f43e02a?q=80&w=2670&auto=format&fit=crop');">
+        <div style="background-image: linear-gradient(rgba(4, 79, 4, 0.7), rgba(0, 0, 0, 0.6)), url('assets/images/gallery/peef4.jpg');">
              <div class="relative z-10 p-8 max-w-4xl mx-auto slide-content">
                 <h1 class="text-4xl md:text-6xl font-bold leading-tight mb-4" style="text-shadow: 2px 2px 8px rgba(0,0,0,0.6);">
                    Championing Skills Development in Nigeria
@@ -308,7 +342,7 @@
                 </div>
             </div>
         </div>
-        <div style="background-image: linear-gradient(rgba(4, 79, 4, 0.7), rgba(0, 0, 0, 0.6)), url('https://images.unsplash.com/photo-1523240795612-9a054b0db644?q=80&w=2670&auto=format&fit=crop');">
+        <div style="background-image: linear-gradient(rgba(4, 79, 4, 0.7), rgba(0, 0, 0, 0.6)), url('assets/images/gallery/peef1.jpg');">
              <div class="relative z-10 p-8 max-w-4xl mx-auto slide-content">
                 <h1 class="text-4xl md:text-6xl font-bold leading-tight mb-4" style="text-shadow: 2px 2px 8px rgba(0,0,0,0.6);">
                    Empowering the Next Generation
@@ -319,7 +353,7 @@
                 </div>
             </div>
         </div>
-        <div style="background-image: linear-gradient(rgba(4, 79, 4, 0.7), rgba(0, 0, 0, 0.6)), url('https://images.unsplash.com/photo-1556761175-b413da4b248b?q=80&w=2574&auto=format&fit=crop');">
+        <div style="background-image: linear-gradient(rgba(4, 79, 4, 0.7), rgba(0, 0, 0, 0.6)), url('assets/images/gallery/peef1.jpg');">
              <div class="relative z-10 p-8 max-w-4xl mx-auto slide-content">
                 <h1 class="text-4xl md:text-6xl font-bold leading-tight mb-4" style="text-shadow: 2px 2px 8px rgba(0,0,0,0.6);">
                    Building a Network of Experts
@@ -340,12 +374,12 @@
                 <div class="grid md:grid-cols-3 gap-8 text-center">
                     <div class="bg-white p-8 rounded-xl shadow-lg">
                         <i class="fas fa-users text-5xl text-brand-gold mb-4"></i>
-                        <p id="impact-members" class="text-5xl font-bold text-brand-green mb-2">...</p>
+                        <p class="text-5xl font-bold text-brand-green mb-2">1,200+</p>
                         <p class="text-lg text-gray-600">Members & Experts</p>
                     </div>
                     <div class="bg-white p-8 rounded-xl shadow-lg">
                         <i class="fas fa-calendar-check text-5xl text-brand-gold mb-4"></i>
-                        <p id="impact-events" class="text-5xl font-bold text-brand-green mb-2">...</p>
+                        <p class="text-5xl font-bold text-brand-green mb-2">50+</p>
                         <p class="text-lg text-gray-600">Events Hosted</p>
                     </div>
                     <div class="bg-white p-8 rounded-xl shadow-lg">
@@ -361,7 +395,7 @@
         <section class="py-20 bg-white">
             <div class="container mx-auto px-6 flex flex-col md:flex-row items-center gap-12">
                 <div class="md:w-1/2">
-                    <img src="https://images.unsplash.com/photo-1543269865-cbf427effbad?q=80&w=2670&auto=format&fit=crop" onerror="this.onerror=null;this.src='https://placehold.co/600x400/044f04/ffffff?text=PEEF+Team';" alt="Professional Nigerian team collaborating" class="rounded-2xl shadow-2xl w-full h-full object-cover">
+                    <img src="assets/images/gallery/peef3.jpg" onerror="this.onerror=null;this.src='https://placehold.co/600x400/044f04/ffffff?text=PEEF+Team';" alt="Professional Nigerian team collaborating" class="rounded-2xl shadow-2xl w-full h-full object-cover">
                 </div>
                 <div class="md:w-1/2">
                     <h2 class="section-title !text-left !ml-0">About PEEF</h2>
@@ -371,29 +405,18 @@
                 </div>
             </div>
         </section>
-        
+
         <!-- Our National Footprint Section -->
-        <section class="py-20 bg-brand-light-bg relative">
-            <div class="absolute inset-0 bg-cover bg-center bg-fixed" style="background-image: url('https://images.unsplash.com/photo-1568992687947-868a62a9f521?q=80&w=2832&auto=format&fit=crop');"></div>
-            <div class="absolute inset-0 bg-brand-green opacity-80"></div>
-            <div class="container mx-auto px-6 relative z-10 text-white">
-                <h2 class="section-title !text-white">Our National Footprint</h2>
-                <p class="text-center text-xl max-w-3xl mx-auto mb-12">We are a truly national organization, with a diverse and powerful network of professionals dedicated to development in every corner of the country.</p>
-                <div class="grid md:grid-cols-3 gap-8 text-center">
-                    <div class="bg-white/10 p-8 rounded-xl backdrop-blur-sm">
-                        <i class="fas fa-map-marker-alt text-5xl text-brand-gold mb-4"></i>
-                        <p class="text-5xl font-bold mb-2">36+</p>
-                        <p class="text-lg">States Represented</p>
+        <section class="py-20 bg-brand-light-bg">
+            <div class="container mx-auto px-6">
+                <h2 class="section-title">Our National Footprint</h2>
+                <div class="grid md:grid-cols-3 gap-8 items-center">
+                    <div class="md:col-span-2">
+                        <div id="map-container" class="w-full aspect-square"></div>
                     </div>
-                    <div class="bg-white/10 p-8 rounded-xl backdrop-blur-sm">
-                        <i class="fas fa-users text-5xl text-brand-gold mb-4"></i>
-                        <p class="text-5xl font-bold mb-2">1,200+</p>
-                        <p class="text-lg">Members Nationwide</p>
-                    </div>
-                    <div class="bg-white/10 p-8 rounded-xl backdrop-blur-sm">
-                        <i class="fas fa-globe-africa text-5xl text-brand-gold mb-4"></i>
-                        <p class="text-5xl font-bold mb-2">6</p>
-                        <p class="text-lg">Geopolitical Zones</p>
+                    <div>
+                        <h3 class="text-2xl font-bold text-brand-green mb-4">A Nationwide Network</h3>
+                        <p class="text-gray-700">Our members are spread across all 36 states of Nigeria, forming a diverse and powerful network of professionals dedicated to national development. Hover over the map to see our presence in each state.</p>
                     </div>
                 </div>
             </div>
@@ -403,15 +426,44 @@
         <section class="py-20 bg-white">
             <div class="container mx-auto px-6">
                 <h2 class="section-title">Upcoming Events</h2>
-                <div id="upcoming-events-grid" class="grid md:grid-cols-3 gap-8">
-                    <!-- Events will be loaded here by jQuery -->
+                <div class="grid md:grid-cols-3 gap-8">
+                    <!-- Sample Event 1 -->
+                    <div class="event-card" style="background-image: url('https://images.unsplash.com/photo-1560523160-754a9e25c68f?q=80&w=2574&auto=format&fit=crop')" data-event-date="2025-10-25T09:00:00">
+                        <div class="event-card-content flex flex-col justify-end h-full min-h-[400px]">
+                            <div>
+                                <h3 class="text-2xl font-bold mb-2">Annual Skills Development Conference</h3>
+                                <p class="mb-4"><i class="fas fa-map-marker-alt mr-2 text-brand-gold"></i>Lagos, Nigeria</p>
+                                <div class="countdown-timer"></div>
+                            </div>
+                        </div>
+                    </div>
+                    <!-- Sample Event 2 -->
+                    <div class="event-card" style="background-image: url('https://images.unsplash.com/photo-1587825140708-df876c1b5df1?q=80&w=2670&auto=format&fit=crop')" data-event-date="2025-11-12T14:00:00">
+                        <div class="event-card-content flex flex-col justify-end h-full min-h-[400px]">
+                            <div>
+                                <h3 class="text-2xl font-bold mb-2">Webinar: The Role of AI in HR</h3>
+                                <p class="mb-4"><i class="fas fa-map-marker-alt mr-2 text-brand-gold"></i>Online Event</p>
+                                <div class="countdown-timer"></div>
+                            </div>
+                        </div>
+                    </div>
+                    <!-- Sample Event 3 -->
+                    <div class="event-card" style="background-image: url('https://images.unsplash.com/photo-1540575467063-178a50c2df87?q=80&w=2670&auto=format&fit=crop')" data-event-date="2025-12-05T18:00:00">
+                        <div class="event-card-content flex flex-col justify-end h-full min-h-[400px]">
+                            <div>
+                                <h3 class="text-2xl font-bold mb-2">PEEF End-of-Year Gala</h3>
+                                <p class="mb-4"><i class="fas fa-map-marker-alt mr-2 text-brand-gold"></i>Abuja, Nigeria</p>
+                                <div class="countdown-timer"></div>
+                            </div>
+                        </div>
+                    </div>
                 </div>
                 <div class="text-center mt-12">
                     <a href="events.php" class="btn-primary">View All Events</a>
                 </div>
             </div>
         </section>
-        
+
         <!-- Testimonials Section -->
         <section class="py-20 bg-brand-light-bg">
             <div class="container mx-auto px-6">
@@ -436,20 +488,49 @@
                 </div>
             </div>
         </section>
-
+        
         <!-- Latest Blog Posts -->
         <section class="py-20 bg-white">
             <div class="container mx-auto px-6">
                 <h2 class="section-title">From Our Knowledge Hub</h2>
-                <div id="latest-posts-grid" class="grid md:grid-cols-3 gap-8">
-                    <!-- Blog posts will be loaded here by jQuery -->
+                <div class="grid md:grid-cols-3 gap-8">
+                    <!-- Sample Post 1 -->
+                    <div class="bg-white rounded-xl shadow-lg overflow-hidden flex flex-col transform hover:-translate-y-2 transition-transform duration-300">
+                        <a href="blog_post.php"><img src="https://images.unsplash.com/photo-1491975474562-1f4e30bc9468?q=80&w=2574&auto=format&fit=crop" onerror="this.onerror=null;this.src='https://placehold.co/400x250/dddddd/333333?text=Blog+Image';" class="w-full h-48 object-cover" alt="People working on laptops"></a>
+                        <div class="p-6 flex-grow">
+                            <p class="text-sm text-gray-500 mb-2">July 20, 2025 | By Dr. Amina Bello</p>
+                            <h3 class="text-xl font-bold text-brand-green mb-3">5 Key Strategies for Upskilling Your Workforce</h3>
+                            <p class="text-gray-700">In a rapidly changing world, continuous learning is not just an option; it's a necessity...</p>
+                        </div>
+                         <a href="blog_post.php" class="mt-auto text-brand-green p-4 text-left font-bold hover:text-brand-gold transition-colors duration-300">Read More <i class="fas fa-arrow-right ml-1"></i></a>
+                    </div>
+                    <!-- Sample Post 2 -->
+                     <div class="bg-white rounded-xl shadow-lg overflow-hidden flex flex-col transform hover:-translate-y-2 transition-transform duration-300">
+                        <a href="blog_post.php"><img src="https://images.unsplash.com/photo-1551843122-4a34b95af9c7?q=80&w=2574&auto=format&fit=crop" onerror="this.onerror=null;this.src='https://placehold.co/400x250/dddddd/333333?text=Blog+Image';" class="w-full h-48 object-cover" alt="Person using a laptop"></a>
+                        <div class="p-6 flex-grow">
+                            <p class="text-sm text-gray-500 mb-2">July 15, 2025 | By Engr. Tunde Cole</p>
+                            <h3 class="text-xl font-bold text-brand-green mb-3">The Impact of Digital Literacy on National Productivity</h3>
+                            <p class="text-gray-700">Exploring the correlation between a digitally literate population and economic growth...</p>
+                        </div>
+                         <a href="blog_post.php" class="mt-auto text-brand-green p-4 text-left font-bold hover:text-brand-gold transition-colors duration-300">Read More <i class="fas fa-arrow-right ml-1"></i></a>
+                    </div>
+                    <!-- Sample Post 3 -->
+                     <div class="bg-white rounded-xl shadow-lg overflow-hidden flex flex-col transform hover:-translate-y-2 transition-transform duration-300">
+                        <a href="blog_post.php"><img src="https://images.unsplash.com/photo-1519389950473-47ba0277781c?q=80&w=2670&auto=format&fit=crop" onerror="this.onerror=null;this.src='https://placehold.co/400x250/dddddd/333333?text=Blog+Image';" class="w-full h-48 object-cover" alt="Team putting hands together"></a>
+                        <div class="p-6 flex-grow">
+                            <p class="text-sm text-gray-500 mb-2">July 10, 2025 | By PEEF Editorial Team</p>
+                            <h3 class="text-xl font-bold text-brand-green mb-3">PEEF Mid-Year Review: Milestones and Future Goals</h3>
+                            <p class="text-gray-700">A look back at our accomplishments in the first half of 2025 and our plans for what's next...</p>
+                        </div>
+                         <a href="blog_post.php" class="mt-auto text-brand-green p-4 text-left font-bold hover:text-brand-gold transition-colors duration-300">Read More <i class="fas fa-arrow-right ml-1"></i></a>
+                    </div>
                 </div>
                  <div class="text-center mt-12">
                     <a href="knowledge_hub.php" class="btn-primary">Visit Knowledge Hub</a>
                 </div>
             </div>
         </section>
-        
+
         <!-- Recent Exploits (YouTube) Section -->
         <section class="py-20 bg-brand-light-bg">
             <div class="container mx-auto px-6">
@@ -486,8 +567,8 @@
                 </div>
             </div>
         </section>
-        
-        <!-- Get Involved Section -->
+
+        <!-- How to Get Involved Section -->
         <section class="py-20 bg-white">
             <div class="container mx-auto px-6">
                 <h2 class="section-title">Get Involved</h2>
@@ -600,7 +681,7 @@
             </div>
         </div>
     </footer>
-    
+
     <!-- Floating WhatsApp Button -->
     <a href="https://wa.me/2348066068596" target="_blank" class="whatsapp-float" aria-label="Chat on WhatsApp">
         <i class="fab fa-whatsapp"></i>
@@ -609,6 +690,8 @@
     <!-- Scripts -->
     <script src="https://code.jquery.com/jquery-3.6.0.min.js"></script>
     <script type="text/javascript" src="https://cdn.jsdelivr.net/npm/slick-carousel@1.8.1/slick/slick.min.js"></script>
+    <script src="https://d3js.org/d3.v6.min.js"></script>
+    <script src="https://d3js.org/topojson.v2.min.js"></script>
     <script>
         $(document).ready(function(){
             // Mobile menu toggle
@@ -628,93 +711,37 @@
                 arrows: false
             });
             
-            // AJAX to fetch homepage data
-            $.ajax({
-                url: 'php/api/homepage.php',
-                type: 'GET',
-                dataType: 'json',
-                success: function(response) {
-                    if (response.status === 'success') {
-                        // Populate Impact Stats
-                        $('#impact-members').text((response.data.stats.total_members || '1,200') + '+');
-                        $('#impact-events').text((response.data.stats.total_events || '50') + '+');
+            // Event Countdown Timers
+            $('.event-card').each(function() {
+                const eventDate = $(this).data('event-date');
+                const countdownContainer = $(this).find('.countdown-timer');
+                
+                const targetDate = new Date(eventDate).getTime();
 
-                        // Populate Upcoming Events
-                        const eventsGrid = $('#upcoming-events-grid');
-                        eventsGrid.empty();
-                        response.data.upcoming_events.forEach(event => {
-                            const eventHtml = `
-                                <div class="event-card" style="background-image: url('https://placehold.co/600x400/044f04/ffffff?text=Event');" data-event-date="${event.start_datetime}">
-                                    <div class="event-card-content flex flex-col justify-end h-full min-h-[400px]">
-                                        <div>
-                                            <h3 class="text-2xl font-bold mb-2">${event.title}</h3>
-                                            <p class="mb-4"><i class="fas fa-map-marker-alt mr-2 text-brand-gold"></i>${event.location}</p>
-                                            <div class="countdown-timer"></div>
-                                        </div>
-                                    </div>
-                                </div>`;
-                            eventsGrid.append(eventHtml);
-                        });
+                const interval = setInterval(() => {
+                    const now = new Date().getTime();
+                    const distance = targetDate - now;
 
-                        // Populate Latest Blog Posts
-                        const postsGrid = $('#latest-posts-grid');
-                        postsGrid.empty();
-                        response.data.latest_posts.forEach(post => {
-                            const postHtml = `
-                                <div class="bg-white rounded-xl shadow-lg overflow-hidden flex flex-col transform hover:-translate-y-2 transition-transform duration-300">
-                                    <a href="blog_post.php?id=${post.id}"><img src="${post.featured_image || 'https://placehold.co/400x250/dddddd/333333?text=Blog+Image'}" class="w-full h-48 object-cover" alt="${post.title}"></a>
-                                    <div class="p-6 flex-grow">
-                                        <p class="text-sm text-gray-500 mb-2">${new Date(post.published_at).toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' })} | By ${post.author}</p>
-                                        <h3 class="text-xl font-bold text-brand-green mb-3">${post.title}</h3>
-                                        <p class="text-gray-700">${post.snippet}...</p>
-                                    </div>
-                                     <a href="blog_post.php?id=${post.id}" class="mt-auto text-brand-green p-4 text-left font-bold hover:text-brand-gold transition-colors duration-300">Read More <i class="fas fa-arrow-right ml-1"></i></a>
-                                </div>`;
-                            postsGrid.append(postHtml);
-                        });
-                        
-                        // Initialize countdown timers
-                        initializeCountdownTimers();
+                    if (distance < 0) {
+                        clearInterval(interval);
+                        countdownContainer.html('<div class="bg-red-500/50 p-2 rounded-lg">Event has started</div>');
+                        return;
                     }
-                },
-                error: function(xhr, status, error) {
-                    console.error("Failed to fetch homepage data:", error);
-                    $('#upcoming-events-grid').html('<p class="text-center col-span-3">Could not load upcoming events.</p>');
-                    $('#latest-posts-grid').html('<p class="text-center col-span-3">Could not load latest posts.</p>');
-                }
+
+                    const days = Math.floor(distance / (1000 * 60 * 60 * 24));
+                    const hours = Math.floor((distance % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
+                    const minutes = Math.floor((distance % (1000 * 60 * 60)) / (1000 * 60));
+                    const seconds = Math.floor((distance % (1000 * 60)) / 1000);
+
+                    countdownContainer.html(`
+                        <div><div class="time">${days}</div><div class="label">Days</div></div>
+                        <div><div class="time">${hours}</div><div class="label">Hours</div></div>
+                        <div><div class="time">${minutes}</div><div class="label">Mins</div></div>
+                        <div><div class="time">${seconds}</div><div class="label">Secs</div></div>
+                    `);
+                }, 1000);
             });
 
-            function initializeCountdownTimers() {
-                $('.event-card').each(function() {
-                    const eventDate = $(this).data('event-date');
-                    const countdownContainer = $(this).find('.countdown-timer');
-                    const targetDate = new Date(eventDate).getTime();
-
-                    const interval = setInterval(() => {
-                        const now = new Date().getTime();
-                        const distance = targetDate - now;
-
-                        if (distance < 0) {
-                            clearInterval(interval);
-                            countdownContainer.html('<div class="bg-red-500/50 p-2 rounded-lg">Event has started</div>');
-                            return;
-                        }
-
-                        const days = Math.floor(distance / (1000 * 60 * 60 * 24));
-                        const hours = Math.floor((distance % (1000 * 60 * 60 * 24)) / (1000 * 60 * 60));
-                        const minutes = Math.floor((distance % (1000 * 60 * 60)) / (1000 * 60));
-                        const seconds = Math.floor((distance % (1000 * 60)) / 1000);
-
-                        countdownContainer.html(`
-                            <div><div class="time">${days}</div><div class="label">Days</div></div>
-                            <div><div class="time">${hours}</div><div class="label">Hours</div></div>
-                            <div><div class="time">${minutes}</div><div class="label">Mins</div></div>
-                            <div><div class="time">${seconds}</div><div class="label">Secs</div></div>
-                        `);
-                    }, 1000);
-                });
-            }
-            
             // YouTube Playlist
             $('.playlist-item').on('click', function() {
                 const videoId = $(this).data('video-id');
@@ -723,6 +750,65 @@
 
                 $('.playlist-item').removeClass('active');
                 $(this).addClass('active');
+            });
+            
+            // Interactive Map of Nigeria
+            const width = 600;
+            const height = 600;
+
+            const svg = d3.select("#map-container").append("svg")
+                .attr("viewBox", `0 0 ${width} ${height}`)
+                .attr("width", "100%")
+                .attr("height", "100%");
+
+            const projection = d3.geoMercator().scale(2500).center([8.6753, 9.0820]);
+            const path = d3.geoPath().projection(projection);
+
+            const tooltip = d3.select("body").append("div")
+                .attr("class", "map-tooltip");
+
+            // Sample member data
+            const memberData = {
+                "Lagos": 250, "Kano": 120, "Rivers": 150, "FCT": 180, "Oyo": 90,
+                "Kaduna": 80, "Edo": 70, "Ogun": 60, "Anambra": 50, "Enugu": 45,
+                "Delta": 75, "Akwa Ibom": 65, "Imo": 40, "Plateau": 30, "Benue": 25,
+                "Kwara": 35, "Ondo": 55, "Osun": 48, "Katsina": 20, "Bauchi": 15,
+                "Borno": 10, "Adamawa": 12, "Sokoto": 8, "Kebbi": 5, "Zamfara": 7,
+                "Jigawa": 9, "Yobe": 6, "Gombe": 11, "Taraba": 13, "Nasarawa": 22,
+                "Niger": 28, "Kogi": 32, "Ekiti": 38, "Abia": 42, "Cross River": 33,
+                "Bayelsa": 29, "Ebonyi": 18
+            };
+
+            d3.json("https://gist.githubusercontent.com/davoqu/30993444b0222f96135355b281b44218/raw/b2158c2de8a74880c1a2b301b3a23a31c162b75a/nigeria-states.json").then(function(topology) {
+                const states = topojson.feature(topology, topology.objects.NGA_adm1);
+                projection.fitSize([width, height], states);
+
+                svg.selectAll("path")
+                    .data(states.features)
+                    .enter().append("path")
+                    .attr("class", "state")
+                    .attr("d", path)
+                    .on("mouseover", function(event, d) {
+                        const stateName = d.properties.NAME_1;
+                        const members = memberData[stateName] || 0;
+                        tooltip.transition().duration(200).style("opacity", .9);
+                        tooltip.html(`<strong>${stateName}</strong><br>${members} Members`)
+                            .style("left", (event.pageX + 10) + "px")
+                            .style("top", (event.pageY - 28) + "px");
+                    })
+                    .on("mouseout", function(d) {
+                        tooltip.transition().duration(500).style("opacity", 0);
+                    });
+
+                svg.selectAll("circle")
+                    .data(states.features)
+                    .enter().append("circle")
+                    .attr("class", "member-circle")
+                    .attr("transform", d => `translate(${path.centroid(d)})`)
+                    .attr("r", d => {
+                        const members = memberData[d.properties.NAME_1] || 0;
+                        return Math.sqrt(members) / 2; // Scale radius based on member count
+                    });
             });
         });
     </script>

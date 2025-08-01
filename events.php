@@ -163,96 +163,10 @@
         <!-- Events Listing Section -->
         <section class="py-20">
             <div class="container mx-auto px-6">
-                <h2 class="section-title">Upcoming Events</h2>
-                <div class="space-y-8">
-                    <!-- Event 1 -->
-                    <div class="event-list-card bg-white rounded-lg shadow-md overflow-hidden md:flex">
-                        <div class="md:w-1/3">
-                            <img src="https://images.unsplash.com/photo-1560523160-754a9e25c68f?q=80&w=2574&auto=format&fit=crop" onerror="this.onerror=null;this.src='https://placehold.co/400x300/dddddd/333333?text=Event';" alt="Conference" class="w-full h-full object-cover">
-                        </div>
-                        <div class="md:w-2/3 p-6 flex flex-col justify-between">
-                            <div>
-                                <p class="text-sm text-brand-green font-bold">October 25, 2025</p>
-                                <h3 class="text-2xl font-bold text-brand-dark my-2">Annual Skills Development Conference</h3>
-                                <p class="text-gray-600 mb-4">Join industry leaders to discuss the future of work and skills management in Nigeria. A premier event for networking and learning.</p>
-                            </div>
-                            <div class="flex justify-between items-center mt-4">
-                                <p class="font-semibold"><i class="fas fa-map-marker-alt mr-2 text-brand-gold"></i>Lagos, Nigeria</p>
-                                <a href="event_details.php" class="btn-primary !py-2 !px-6 !text-sm">Learn More</a>
-                            </div>
-                        </div>
-                    </div>
-                    <!-- Event 2 -->
-                    <div class="event-list-card bg-white rounded-lg shadow-md overflow-hidden md:flex">
-                        <div class="md:w-1/3">
-                            <img src="https://images.unsplash.com/photo-1587825140708-df876c1b5df1?q=80&w=2670&auto=format&fit=crop" onerror="this.onerror=null;this.src='https://placehold.co/400x300/dddddd/333333?text=Event';" alt="Webinar" class="w-full h-full object-cover">
-                        </div>
-                        <div class="md:w-2/3 p-6 flex flex-col justify-between">
-                            <div>
-                                <p class="text-sm text-brand-green font-bold">November 12, 2025</p>
-                                <h3 class="text-2xl font-bold text-brand-dark my-2">Webinar: The Role of AI in HR</h3>
-                                <p class="text-gray-600 mb-4">An insightful online session on how Artificial Intelligence is transforming human resource management and talent acquisition.</p>
-                            </div>
-                            <div class="flex justify-between items-center mt-4">
-                                <p class="font-semibold"><i class="fas fa-video mr-2 text-brand-gold"></i>Online Event</p>
-                                <a href="event_details.php" class="btn-primary !py-2 !px-6 !text-sm">Register Now</a>
-                            </div>
-                        </div>
-                    </div>
-                    <!-- Event 3 -->
-                    <div class="event-list-card bg-white rounded-lg shadow-md overflow-hidden md:flex">
-                        <div class="md:w-1/3">
-                            <img src="https://images.unsplash.com/photo-1540575467063-178a50c2df87?q=80&w=2670&auto=format&fit=crop" onerror="this.onerror=null;this.src='https://placehold.co/400x300/dddddd/333333?text=Event';" alt="Gala" class="w-full h-full object-cover">
-                        </div>
-                        <div class="md:w-2/3 p-6 flex flex-col justify-between">
-                            <div>
-                                <p class="text-sm text-brand-green font-bold">December 05, 2025</p>
-                                <h3 class="text-2xl font-bold text-brand-dark my-2">PEEF End-of-Year Gala</h3>
-                                <p class="text-gray-600 mb-4">A night to celebrate our achievements and honor our top contributors and members. Join us for an evening of elegance and networking.</p>
-                            </div>
-                            <div class="flex justify-between items-center mt-4">
-                                <p class="font-semibold"><i class="fas fa-map-marker-alt mr-2 text-brand-gold"></i>Abuja, Nigeria</p>
-                                <a href="event_details.php" class="btn-primary !py-2 !px-6 !text-sm">Get Tickets</a>
-                            </div>
-                        </div>
-                    </div>
-                </div>
-            </div>
-        </section>
-
-        <!-- Past Events Section -->
-        <section class="py-20 bg-brand-light-bg">
-            <div class="container mx-auto px-6">
-                <h2 class="section-title">Past Events</h2>
-                <p class="text-center text-gray-600 max-w-2xl mx-auto -mt-8 mb-12">Explore moments from our previous gatherings and see the impact we've made together.</p>
-                <div class="grid md:grid-cols-3 gap-8">
-                    <!-- Past Event 1 -->
-                    <div class="bg-white rounded-lg shadow-md overflow-hidden">
-                        <img src="https://images.unsplash.com/photo-1556761175-5973dc0f32e7?q=80&w=2832&auto=format&fit=crop" onerror="this.onerror=null;this.src='https://placehold.co/400x250/dddddd/333333?text=Past+Event';" alt="Past Event" class="w-full h-48 object-cover">
-                        <div class="p-6">
-                            <p class="text-sm text-gray-500">August 15, 2025</p>
-                            <h4 class="font-bold text-lg mt-1">Youth Empowerment Summit</h4>
-                            <a href="gallery.php" class="text-brand-green font-semibold mt-2 inline-block hover:text-brand-gold">View Gallery <i class="fas fa-arrow-right ml-1"></i></a>
-                        </div>
-                    </div>
-                    <!-- Past Event 2 -->
-                    <div class="bg-white rounded-lg shadow-md overflow-hidden">
-                        <img src="https://images.unsplash.com/photo-1543269865-cbf427effbad?q=80&w=2670&auto=format&fit=crop" onerror="this.onerror=null;this.src='https://placehold.co/400x250/dddddd/333333?text=Past+Event';" alt="Past Event" class="w-full h-48 object-cover">
-                        <div class="p-6">
-                            <p class="text-sm text-gray-500">June 20, 2025</p>
-                            <h4 class="font-bold text-lg mt-1">Leadership Masterclass</h4>
-                            <a href="gallery.php" class="text-brand-green font-semibold mt-2 inline-block hover:text-brand-gold">View Gallery <i class="fas fa-arrow-right ml-1"></i></a>
-                        </div>
-                    </div>
-                    <!-- Past Event 3 -->
-                    <div class="bg-white rounded-lg shadow-md overflow-hidden">
-                        <img src="https://images.unsplash.com/photo-1524178232363-1fb2b075b655?q=80&w=2670&auto=format&fit=crop" onerror="this.onerror=null;this.src='https://placehold.co/400x250/dddddd/333333?text=Past+Event';" alt="Past Event" class="w-full h-48 object-cover">
-                        <div class="p-6">
-                            <p class="text-sm text-gray-500">April 10, 2025</p>
-                            <h4 class="font-bold text-lg mt-1">Digital Skills Workshop</h4>
-                            <a href="gallery.php" class="text-brand-green font-semibold mt-2 inline-block hover:text-brand-gold">View Gallery <i class="fas fa-arrow-right ml-1"></i></a>
-                        </div>
-                    </div>
+                <h2 class="section-title">Upcoming & Past Events</h2>
+                <div id="events-container" class="space-y-8">
+                    <!-- Events will be loaded here by jQuery -->
+                    <p class="text-center text-gray-500">Loading events...</p>
                 </div>
             </div>
         </section>
@@ -329,8 +243,54 @@
             $('#mobile-menu-button').on('click', function() {
                 $('#mobile-menu').toggleClass('hidden');
             });
+
+            // AJAX to fetch events
+            $.ajax({
+                url: 'php/api/public/events.php',
+                type: 'GET',
+                dataType: 'json',
+                success: function(response) {
+                    const eventsContainer = $('#events-container');
+                    eventsContainer.empty();
+
+                    if (response.status === 'success' && response.data.length > 0) {
+                        response.data.forEach(event => {
+                            const eventDate = new Date(event.start_datetime);
+                            const formattedDate = eventDate.toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' });
+                            const isOnline = event.location.toLowerCase() === 'online';
+
+                            const eventHtml = `
+                                <div class="event-list-card bg-white rounded-lg shadow-md overflow-hidden md:flex">
+                                    <div class="md:w-1/3">
+                                        <img src="${event.poster_image || 'https://placehold.co/400x300/dddddd/333333?text=Event'}" alt="${event.title}" class="w-full h-full object-cover">
+                                    </div>
+                                    <div class="md:w-2/3 p-6 flex flex-col justify-between">
+                                        <div>
+                                            <p class="text-sm text-brand-green font-bold">${formattedDate}</p>
+                                            <h3 class="text-2xl font-bold text-brand-dark my-2">${event.title}</h3>
+                                            <p class="text-gray-600 mb-4">${event.description.substring(0, 150)}...</p>
+                                        </div>
+                                        <div class="flex justify-between items-center mt-4">
+                                            <p class="font-semibold">
+                                                <i class="fas ${isOnline ? 'fa-video' : 'fa-map-marker-alt'} mr-2 text-brand-gold"></i>
+                                                ${event.location}
+                                            </p>
+                                            <a href="event_details.php?id=${event.id}" class="btn-primary !py-2 !px-6 !text-sm">Learn More</a>
+                                        </div>
+                                    </div>
+                                </div>
+                            `;
+                            eventsContainer.append(eventHtml);
+                        });
+                    } else {
+                        eventsContainer.html('<p class="text-center text-gray-500">No events found.</p>');
+                    }
+                },
+                error: function() {
+                    $('#events-container').html('<p class="text-center text-red-500">Could not load events. Please try again later.</p>');
+                }
+            });
         });
     </script>
 </body>
 </html>
- 
