@@ -181,7 +181,7 @@ try {
                 <div class="flex items-center text-gray-500 text-sm mb-6">
                     <span><i class="fas fa-user mr-2"></i><?php echo htmlspecialchars($post['author']); ?></span>
                     <span class="mx-3">|</span>
-                    <span><i class="fas fa-calendar-alt mr-2"></i><?php echo !empty($post['published_at']) ? format_date($post['published_at']) : 'Not Published'; ?></span>
+                    <span><i class="fas fa-calendar-alt mr-2"></i><?php echo format_date($post['published_at']); ?></span>
                     <span class="mx-3">|</span>
                     <span><i class="fas fa-folder-open mr-2"></i><?php echo htmlspecialchars($post['category']); ?></span>
                 </div>

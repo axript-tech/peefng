@@ -1,3 +1,7 @@
+<?php
+// Start the session to be able to access session variables.
+session_start();
+?>
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -153,9 +157,9 @@
     </header>
 
     <!-- Page Header -->
-    <section id="page-header" class="page-header">
+    <section class="page-header" style="background-image: url('https://images.unsplash.com/photo-1560523160-754a9e25c68f?q=80&w=2574&auto=format&fit=crop');">
         <div class="container mx-auto px-6 relative z-10 pb-12">
-            <h1 id="event-title-header" class="text-4xl md:text-5xl font-bold" style="text-shadow: 2px 2px 8px rgba(0,0,0,0.6);">Loading Event...</h1>
+            <h1 class="text-4xl md:text-5xl font-bold" style="text-shadow: 2px 2px 8px rgba(0,0,0,0.6);">Annual Skills Development Conference</h1>
         </div>
     </section>
 
@@ -166,11 +170,24 @@
                 <div class="lg:col-span-2">
                     <div class="bg-white p-8 rounded-xl shadow-lg">
                         <h2 class="text-3xl font-bold text-brand-dark mb-4">About the Event</h2>
-                        <p id="event-description" class="text-gray-700 mb-6">Loading details...</p>
+                        <p class="text-gray-700 mb-6">Join industry leaders, policymakers, and professionals from across Nigeria to discuss the future of work and skills management. The Annual Skills Development Conference is PEEF's flagship event, designed to foster collaboration, share insights, and drive the national conversation on workforce empowerment. This year's theme focuses on leveraging technology and innovation to bridge the skills gap and create sustainable employment opportunities for the next generation.</p>
                         
                         <h3 class="text-2xl font-bold text-brand-dark mb-4 mt-8">Key Speakers</h3>
-                        <div id="key-speakers" class="grid sm:grid-cols-2 gap-6">
-                            <!-- Speakers will be loaded here -->
+                        <div class="grid sm:grid-cols-2 gap-6">
+                            <div class="flex items-center space-x-4">
+                                <img src="https://images.unsplash.com/photo-1557862921-37829c790f19?q=80&w=2671&auto=format&fit=crop" alt="Speaker" class="w-20 h-20 rounded-full object-cover">
+                                <div>
+                                    <h4 class="font-bold">Dr. John Adeoye</h4>
+                                    <p class="text-sm text-gray-500">Chairman, PEEF</p>
+                                </div>
+                            </div>
+                            <div class="flex items-center space-x-4">
+                                <img src="https://images.unsplash.com/photo-1573496359142-b8d87734a5a2?q=80&w=2488&auto=format&fit=crop" alt="Speaker" class="w-20 h-20 rounded-full object-cover">
+                                <div>
+                                    <h4 class="font-bold">Aisha Bello</h4>
+                                    <p class="text-sm text-gray-500">CEO, Tech Innovations Ltd.</p>
+                                </div>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -178,18 +195,18 @@
                 <div class="lg:col-span-1 space-y-8">
                     <div class="bg-white p-6 rounded-xl shadow-lg">
                         <h3 class="text-xl font-bold mb-4">Event Information</h3>
-                        <ul id="event-info-list" class="space-y-4 text-gray-700">
-                            <!-- Info will be loaded here -->
+                        <ul class="space-y-4 text-gray-700">
+                            <li class="flex items-center"><i class="fas fa-calendar-alt w-6 text-brand-gold"></i><span>October 25, 2025</span></li>
+                            <li class="flex items-center"><i class="fas fa-clock w-6 text-brand-gold"></i><span>9:00 AM - 5:00 PM</span></li>
+                            <li class="flex items-center"><i class="fas fa-map-marker-alt w-6 text-brand-gold"></i><span>Eko Hotel & Suites, Lagos</span></li>
+                            <li class="flex items-center"><i class="fas fa-ticket-alt w-6 text-brand-gold"></i><span>₦25,000</span></li>
                         </ul>
                     </div>
                     <div class="bg-brand-green text-white p-6 rounded-xl shadow-lg">
                         <h3 class="text-xl font-bold mb-4">Register Now!</h3>
                         <div id="form-message" class="hidden mb-4" role="alert"></div>
                         <form id="event-reg-form" method="POST" class="space-y-4">
-                            <input type="hidden" name="event_id" id="event_id_field">
-                            <div id="ticket-tiers-container">
-                                <!-- Ticket tiers will be loaded here -->
-                            </div>
+                            <input type="hidden" name="event_id" value="1"> <!-- This would be dynamic in a real app -->
                             <input type="text" name="name" placeholder="e.g., John Doe" class="w-full p-3 border-0 rounded-lg text-black focus:outline-none focus:ring-2 focus:ring-brand-gold" required>
                             <input type="email" name="email" placeholder="e.g., you@example.com" class="w-full p-3 border-0 rounded-lg text-black focus:outline-none focus:ring-2 focus:ring-brand-gold" required>
                             <button type="submit" id="submit-btn" class="btn-primary w-full">
@@ -282,64 +299,55 @@
                 $('#mobile-menu').toggleClass('hidden');
             });
 
-            // Get event ID from URL
-            const urlParams = new URLSearchParams(window.location.search);
-            const eventId = urlParams.get('id');
-            $('#event_id_field').val(eventId);
+            // Leaflet Map for Eko Hotel
+            var map = L.map('map').setView([6.4284, 3.4214], 15);
 
-            // AJAX to fetch event details
-            $.ajax({
-                url: `php/api/public/event_details.php?id=${eventId}`,
-                type: 'GET',
-                dataType: 'json',
-                success: function(response) {
-                    if (response.status === 'success') {
-                        const event = response.data;
-                        
-                        // Populate header
-                        $('#page-header').css('background-image', `linear-gradient(rgba(4, 79, 4, 0.7), rgba(0, 0, 0, 0.6)), url('${event.poster_image || 'https://placehold.co/1920x1080/044f04/ffffff?text=PEEF+Event'}')`);
-                        $('#event-title-header').text(event.title);
-                        
-                        // Populate details
-                        $('#event-description').text(event.description);
-                        
-                        const infoList = $('#event-info-list');
-                        infoList.html(`
-                            <li class="flex items-center"><i class="fas fa-calendar-alt w-6 text-brand-gold"></i><span>${new Date(event.start_datetime).toLocaleDateString('en-US', { dateStyle: 'full' })}</span></li>
-                            <li class="flex items-center"><i class="fas fa-clock w-6 text-brand-gold"></i><span>${new Date(event.start_datetime).toLocaleTimeString('en-US', { timeStyle: 'short' })}</span></li>
-                            <li class="flex items-center"><i class="fas fa-map-marker-alt w-6 text-brand-gold"></i><span>${event.location}</span></li>
-                        `);
+            L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png', {
+                maxZoom: 19,
+                attribution: '© OpenStreetMap'
+            }).addTo(map);
 
-                        // Populate ticket tiers
-                        const tiersContainer = $('#ticket-tiers-container');
-                        tiersContainer.empty();
-                        if (event.tiers && event.tiers.length > 0) {
-                            event.tiers.forEach(tier => {
-                                const tierHtml = `
-                                    <div class="flex items-center">
-                                        <input id="tier-${tier.id}" name="tier_id" type="radio" value="${tier.id}" class="h-4 w-4 text-brand-gold focus:ring-brand-gold border-gray-300">
-                                        <label for="tier-${tier.id}" class="ml-3 block text-sm font-medium text-white">
-                                            ${tier.tier_name} - ₦${new Intl.NumberFormat().format(tier.cost)}
-                                        </label>
-                                    </div>`;
-                                tiersContainer.append(tierHtml);
-                            });
+            var marker = L.marker([6.4284, 3.4214]).addTo(map);
+            marker.bindPopup("<b>Eko Hotel & Suites</b><br>Lagos, Nigeria.").openPopup();
+
+            // Event Registration AJAX Submission
+            $('#event-reg-form').on('submit', function(e) {
+                e.preventDefault();
+
+                const $form = $(this);
+                const $button = $('#submit-btn');
+                const $btnText = $button.find('.btn-text');
+                const $spinner = $button.find('.spinner');
+                const $formMessage = $('#form-message');
+
+                $btnText.text('Processing...');
+                $spinner.removeClass('hidden');
+                $button.prop('disabled', true);
+                $formMessage.addClass('hidden').removeClass('bg-green-100 border-green-400 text-green-700 bg-red-100 border-red-400 text-red-700');
+
+                $.ajax({
+                    type: 'POST',
+                    url: 'php/process/process_event_signup.php',
+                    data: $form.serialize(),
+                    dataType: 'json',
+                    success: function(response) {
+                        if (response.status === 'success') {
+                            $formMessage.html('<div class="bg-green-100 border border-green-400 text-green-700 px-4 py-3 rounded"><strong class="font-bold">Success!</strong> ' + response.message + '</div>');
+                            $form[0].reset();
                         } else {
-                            tiersContainer.html('<p class="text-white">Registration details coming soon.</p>');
-                            $('#submit-btn').hide();
+                            $formMessage.html('<div class="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded"><strong class="font-bold">Error:</strong> ' + response.message + '</div>');
                         }
-
-                        // Initialize Leaflet Map
-                        var map = L.map('map').setView([6.4284, 3.4214], 15); // Example: Eko Hotel
-                        L.tileLayer('https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png').addTo(map);
-                        L.marker([6.4284, 3.4214]).addTo(map).bindPopup(`<b>${event.location}</b>`).openPopup();
-                    } else {
-                        $('main').html('<p class="text-center text-red-500">Error: ' + response.message + '</p>');
+                    },
+                    error: function() {
+                        $formMessage.html('<div class="bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded"><strong class="font-bold">Error:</strong> An unexpected error occurred.</div>');
+                    },
+                    complete: function() {
+                        $btnText.text('Proceed to Payment');
+                        $spinner.addClass('hidden');
+                        $button.prop('disabled', false);
+                        $formMessage.removeClass('hidden');
                     }
-                },
-                error: function() {
-                    $('main').html('<p class="text-center text-red-500">Could not load event details.</p>');
-                }
+                });
             });
         });
     </script>

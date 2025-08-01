@@ -1,66 +1,61 @@
- 
 <?php
 // ------------------------------------------------------
-// PEEF Platform - Admin Login Processing Script
+// PEEF Platform - Member Login Processing Script (AJAX)
 // ------------------------------------------------------
-// This script handles the server-side logic for admin
-// authentication. It validates credentials, sets up a
-// secure session, and redirects accordingly.
+// This script handles the server-side logic for member
+// authentication via an AJAX request.
 // ------------------------------------------------------
 
-// Include all necessary core files.
-// The paths are relative to this file's location in the /admin/ directory.
-require_once __DIR__ . '/../php/includes/db_connect.php';
-require_once __DIR__ . '/../php/includes/functions.php';
-require_once __DIR__ . '/../php/includes/session.php'; // This also starts the session.
+header('Content-Type: application/json');
 
-// Check if the form was submitted via the POST method.
+require_once '../includes/db_connect.php';
+require_once  '../includes/functions.php';
+// We'll create a separate session handler for members to keep it clean.
+require_once  '../includes/session_member.php'; 
+
+$response = [
+    'status' => 'error',
+    'message' => 'An unexpected error occurred.'
+];
+
 if ($_SERVER["REQUEST_METHOD"] == "POST") {
+    $email = filter_input(INPUT_POST, 'email', FILTER_SANITIZE_EMAIL);
+    $password = $_POST['password'];
 
-    // 1. Sanitize and retrieve form data.
-    $email = sanitize_input($_POST['email']);
-    $password = $_POST['password']; // Password should not be sanitized with htmlspecialchars.
-
-    // Basic validation.
     if (empty($email) || empty($password)) {
-        $_SESSION['error_message'] = "Email and password are required.";
-        redirect('index.php');
+        $response['message'] = "Email and password are required.";
+        echo json_encode($response);
+        exit;
     }
 
     try {
-        // 2. Prepare and execute the database query to find the admin user.
-        $sql = "SELECT id, full_name, email, password, role FROM users WHERE email = :email AND role = 'Admin' LIMIT 1";
+        $sql = "SELECT id, full_name, email, password, role, is_active FROM users WHERE email = :email AND role = 'Member' LIMIT 1";
         $stmt = $pdo->prepare($sql);
         $stmt->execute(['email' => $email]);
-        
-        $admin = $stmt->fetch();
+        $member = $stmt->fetch();
 
-        // 3. Verify the user and password.
-        if ($admin && verify_password($password, $admin['password'])) {
-            // Password is correct.
-            
-            // 4. Log the admin in using our session function.
-            login_admin($admin['id'], $admin['full_name']);
-            
-            // 5. Redirect to the secure dashboard.
-            redirect('dashboard.php');
-            
+        if ($member && verify_password($password, $member['password'])) {
+            if ($member['is_active']) {
+                login_member($member['id'], $member['full_name']);
+                
+                $response['status'] = 'success';
+                $response['message'] = 'Login successful! Redirecting...';
+                $response['redirect'] = 'user_dashboard.php';
+            } else {
+                $response['message'] = 'Your account is currently inactive. Please contact support.';
+            }
         } else {
-            // Invalid credentials (user not found, not an admin, or wrong password).
-            $_SESSION['error_message'] = "Invalid login credentials. Please try again.";
-            redirect('index.php');
+            $response['message'] = "Invalid login credentials. Please try again.";
         }
-
     } catch (PDOException $e) {
-        // Handle potential database errors.
-        // In a production environment, this should be logged, not displayed.
-        $_SESSION['error_message'] = "A database error occurred. Please try again later.";
-        // error_log($e->getMessage()); // Example of logging
-        redirect('index.php');
+        http_response_code(500);
+        $response['message'] = "A database error occurred.";
     }
-
 } else {
-    // If the page was accessed directly without a POST request, redirect to the login page.
-    redirect('index.php');
+    http_response_code(405);
+    $response['message'] = 'Invalid request method.';
 }
+
+echo json_encode($response);
+exit;
 ?>

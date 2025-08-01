@@ -1,3 +1,7 @@
+<?php
+// In a real application, you might start a session here
+// session_start();
+?>
 <!DOCTYPE html>
 <html lang="en">
 <head>
@@ -27,6 +31,7 @@
         body {
             font-family: 'Quicksand', sans-serif;
             color: var(--brand-dark);
+            background-color: var(--brand-light-bg);
         }
         .bg-brand-green { background-color: var(--brand-green); }
         .text-brand-green { color: var(--brand-green); }
@@ -34,7 +39,9 @@
         .text-brand-gold { color: var(--brand-gold); }
 
         .btn-primary {
-            display: inline-block;
+            display: inline-flex;
+            align-items: center;
+            justify-content: center;
             font-weight: 700;
             color: var(--brand-dark);
             background-color: var(--brand-gold);
@@ -49,23 +56,34 @@
             transform: translateY(-3px) scale(1.05);
             box-shadow: 0 8px 25px rgba(252, 185, 0, 0.3);
         }
-        
+        .spinner {
+            animation: spin 1s linear infinite;
+        }
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
     </style>
 </head>
 <body class="bg-brand-light-bg">
 
-    <div class="min-h-screen flex items-center justify-center p-4">
-        <div class="w-full max-w-md">
+    <div class="min-h-screen flex items-center justify-center p-4" style="background-image: linear-gradient(rgba(4, 79, 4, 0.8), rgba(0, 0, 0, 0.7)), url('https://images.unsplash.com/photo-1521791136064-7986c2920216?q=80&w=2670&auto=format&fit=crop'); background-size: cover; background-position: center;">
+        <div class="w-full max-w-md bg-white/95 p-8 rounded-xl shadow-2xl">
             <div class="text-center mb-8">
                 <a href="index.php">
                     <img src="https://walkathon.peef.ng/peef2.png" onerror="this.onerror=null;this.src='https://placehold.co/180x50/044F04/FFFFFF?text=PEEF&font=quicksand';" alt="PEEF Logo" class="h-16 mx-auto">
                 </a>
             </div>
-            <div class="bg-white p-8 rounded-xl shadow-lg">
-                <h1 class="text-3xl font-bold text-center text-brand-dark mb-2">Welcome Back!</h1>
-                <p class="text-center text-gray-600 mb-8">Login to your PEEF account.</p>
+            <div>
+                <h1 class="text-3xl font-bold text-center text-brand-dark mb-2">Member Login</h1>
+                <p class="text-center text-gray-600 mb-8">Welcome back! Please sign in to your account.</p>
                 
-                <form action="#" method="POST">
+                <div id="error-message" class="hidden bg-red-100 border border-red-400 text-red-700 px-4 py-3 rounded relative mb-6" role="alert">
+                    <strong class="font-bold">Error:</strong>
+                    <span class="block sm:inline" id="error-text"></span>
+                </div>
+                
+                <form id="login-form" method="POST">
                     <div class="mb-4">
                         <label for="email" class="block font-bold mb-2 text-gray-700">Email Address</label>
                         <input type="email" id="email" name="email" placeholder="you@example.com" class="w-full p-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-brand-gold" required>
@@ -74,23 +92,63 @@
                         <label for="password" class="block font-bold mb-2 text-gray-700">Password</label>
                         <input type="password" id="password" name="password" placeholder="••••••••" class="w-full p-3 border rounded-lg focus:outline-none focus:ring-2 focus:ring-brand-gold" required>
                     </div>
-                    <div class="flex items-center justify-between mb-6">
-                        <div class="flex items-center">
-                            <input id="remember-me" name="remember-me" type="checkbox" class="h-4 w-4 text-brand-green focus:ring-brand-gold border-gray-300 rounded">
-                            <label for="remember-me" class="ml-2 block text-sm text-gray-900">Remember me</label>
-                        </div>
-                        <div class="text-sm">
-                            <a href="#" class="font-medium text-brand-green hover:text-brand-gold">Forgot your password?</a>
-                        </div>
-                    </div>
-                    <button type="submit" class="btn-primary w-full text-lg">Login</button>
+                    <button type="submit" id="login-btn" class="btn-primary w-full text-lg">
+                        <span class="btn-text">Login</span>
+                        <i class="fas fa-spinner spinner ml-2 hidden"></i>
+                    </button>
                 </form>
-                <p class="text-center text-gray-600 mt-8">
-                    Don't have an account? <a href="members.php" class="font-medium text-brand-green hover:text-brand-gold">Sign up here</a>.
+                <p class="text-center text-gray-600 mt-6">
+                    Don't have an account? <a href="members.php" class="font-bold text-brand-green hover:underline">Sign Up</a>
                 </p>
             </div>
         </div>
     </div>
 
+    <!-- jQuery -->
+    <script src="https://code.jquery.com/jquery-3.7.1.min.js"></script>
+    <script>
+        $(document).ready(function() {
+            $('#login-form').on('submit', function(e) {
+                e.preventDefault();
+
+                const $form = $(this);
+                const $button = $('#login-btn');
+                const $btnText = $button.find('.btn-text');
+                const $spinner = $button.find('.spinner');
+                const $errorMessage = $('#error-message');
+                const $errorText = $('#error-text');
+
+                $btnText.text('Signing In...');
+                $spinner.removeClass('hidden');
+                $button.prop('disabled', true);
+                $errorMessage.addClass('hidden');
+
+                $.ajax({
+                    type: 'POST',
+                    url: 'php/process/process_login.php',
+                    data: $form.serialize(),
+                    dataType: 'json',
+                    success: function(response) {
+                        if (response.status === 'success') {
+                            window.location.href = response.redirect;
+                        } else {
+                            $errorText.text(response.message);
+                            $errorMessage.removeClass('hidden');
+                            $btnText.text('Login');
+                            $spinner.addClass('hidden');
+                            $button.prop('disabled', false);
+                        }
+                    },
+                    error: function() {
+                        $errorText.text('An unexpected error occurred. Please try again.');
+                        $errorMessage.removeClass('hidden');
+                        $btnText.text('Login');
+                        $spinner.addClass('hidden');
+                        $button.prop('disabled', false);
+                    }
+                });
+            });
+        });
+    </script>
 </body>
 </html>
